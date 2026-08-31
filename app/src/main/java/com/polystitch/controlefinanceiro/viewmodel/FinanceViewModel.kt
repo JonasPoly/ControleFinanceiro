@@ -1,6 +1,7 @@
 package com.polystitch.controlefinanceiro.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.polystitch.controlefinanceiro.data.AppDatabase
@@ -8,19 +9,41 @@ import com.polystitch.controlefinanceiro.data.entity.TransacaoEntity
 import com.polystitch.controlefinanceiro.data.entity.CartaoEntity
 import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
 import com.polystitch.controlefinanceiro.data.entity.CategoriaEntity
+import com.polystitch.controlefinanceiro.ui.theme.AppTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class FinanceViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val sharedPreferences = application.getSharedPreferences("prefs_app", Context.MODE_PRIVATE)
+
     private val database = AppDatabase.obterBanco(application)
     private val transacaoDao = database.transacaoDao()
     private val cartaoDao = database.cartaoDao()
     private val despesaFixaDao = database.despesaFixaDao()
     private val categoriaDao = database.categoriaDao()
+
+    private val _currentTheme = MutableStateFlow(loadSavedTheme())
+    val currentTheme: StateFlow<AppTheme> = _currentTheme.asStateFlow()
+
+    private fun loadSavedTheme(): AppTheme {
+        val savedName = sharedPreferences.getString("app_theme", AppTheme.AZUL.name) ?: AppTheme.AZUL.name
+        return try {
+            AppTheme.valueOf(savedName)
+        } catch (_: Exception) {
+            AppTheme.AZUL
+        }
+    }
+
+    fun setTheme(theme: AppTheme) {
+        _currentTheme.value = theme
+        sharedPreferences.edit().putString("app_theme", theme.name).apply()
+    }
 
     val transacoes: StateFlow<List<TransacaoEntity>> = transacaoDao.obterTodas()
         .stateIn(

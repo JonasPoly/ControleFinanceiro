@@ -42,19 +42,24 @@ fun AdicionarDespesaCardScreen(
     var selectedCategoriaNome by remember { mutableStateOf("") }
     var expandedCategoriaDropdown by remember { mutableStateOf(false) }
 
+    // Cores integradas diretamente ao Theme do MaterialTheme atual
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
+    // Gradiente alinhado do tom mais escuro para o vibrante (da esquerda para a direita)
     val cardBackgroundBrush = Brush.horizontalGradient(
         colors = listOf(
-            Color(0xFF1E293B),
-            Color(0xFF2563EB)
+            primaryColor,
+            secondaryColor
         )
     )
 
@@ -72,12 +77,12 @@ fun AdicionarDespesaCardScreen(
                                 text = "Nova Despesa no Cartão",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "Adicione a Despesa",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     },
@@ -86,7 +91,7 @@ fun AdicionarDespesaCardScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1E293B)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -118,8 +123,8 @@ fun AdicionarDespesaCardScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         )
                         .clip(RoundedCornerShape(20.dp))
                         .background(cardBackgroundBrush),
@@ -129,11 +134,11 @@ fun AdicionarDespesaCardScreen(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         disabledContainerColor = Color.Transparent,
-                        focusedBorderColor = Color(0xFF93C5FD),
+                        focusedBorderColor = primaryColor.copy(alpha = 0.6f),
                         unfocusedBorderColor = Color.Transparent,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color(0xFF93C5FD),
+                        focusedLabelColor = Color.White.copy(alpha = 0.9f),
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
                     )
                 )
@@ -148,8 +153,8 @@ fun AdicionarDespesaCardScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         )
                         .clip(RoundedCornerShape(20.dp))
                         .background(cardBackgroundBrush),
@@ -159,11 +164,11 @@ fun AdicionarDespesaCardScreen(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         disabledContainerColor = Color.Transparent,
-                        focusedBorderColor = Color(0xFF93C5FD),
+                        focusedBorderColor = primaryColor.copy(alpha = 0.6f),
                         unfocusedBorderColor = Color.Transparent,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color(0xFF93C5FD),
+                        focusedLabelColor = Color.White.copy(alpha = 0.9f),
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
                     )
                 )
@@ -178,8 +183,8 @@ fun AdicionarDespesaCardScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         )
                         .clip(RoundedCornerShape(20.dp))
                         .background(cardBackgroundBrush),
@@ -189,11 +194,11 @@ fun AdicionarDespesaCardScreen(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         disabledContainerColor = Color.Transparent,
-                        focusedBorderColor = Color(0xFF93C5FD),
+                        focusedBorderColor = primaryColor.copy(alpha = 0.6f),
                         unfocusedBorderColor = Color.Transparent,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color(0xFF93C5FD),
+                        focusedLabelColor = Color.White.copy(alpha = 0.9f),
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
                     )
                 )
@@ -205,8 +210,8 @@ fun AdicionarDespesaCardScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         )
                         .clip(RoundedCornerShape(20.dp))
                         .background(cardBackgroundBrush)
@@ -241,7 +246,7 @@ fun AdicionarDespesaCardScreen(
                         onDismissRequest = { expandedDropdown = false },
                         modifier = Modifier
                             .fillMaxWidth(0.85f)
-                            .background(Color(0xFF1E293B))
+                            .background(primaryColor)
                     ) {
                         if (cartoes.isEmpty()) {
                             DropdownMenuItem(
@@ -269,8 +274,8 @@ fun AdicionarDespesaCardScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         )
                         .clip(RoundedCornerShape(20.dp))
                         .background(cardBackgroundBrush)
@@ -305,7 +310,7 @@ fun AdicionarDespesaCardScreen(
                         onDismissRequest = { expandedCategoriaDropdown = false },
                         modifier = Modifier
                             .fillMaxWidth(0.85f)
-                            .background(Color(0xFF1E293B))
+                            .background(primaryColor)
                     ) {
                         if (categorias.isEmpty()) {
                             DropdownMenuItem(
@@ -355,8 +360,8 @@ fun AdicionarDespesaCardScreen(
                         .shadow(
                             elevation = 10.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         ),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)

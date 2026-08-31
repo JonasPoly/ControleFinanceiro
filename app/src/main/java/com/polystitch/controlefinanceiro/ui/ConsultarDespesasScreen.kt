@@ -2,8 +2,6 @@ package com.polystitch.controlefinanceiro.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -77,23 +75,30 @@ fun ConsultarDespesasScreen(
 
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale("pt", "BR")) }
 
+    // Cores dinâmicas retiradas do tema atual do Material 3
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
     val blueGradientBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1E293B), Color(0xFF2563EB))
+        colors = listOf(
+            primaryColor,
+            secondaryColor
+        )
     )
 
     val cardBackgroundBrush = Brush.horizontalGradient(
         colors = listOf(
-            Color(0xFFE9D5FF),
-            Color(0xFFF3E8FF)
+            primaryColor.copy(alpha = 0.15f),
+            secondaryColor.copy(alpha = 0.1f)
         )
     )
 
@@ -113,12 +118,12 @@ fun ConsultarDespesasScreen(
                                 text = "Consultar Despesas",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "À vista, cartão e fixas filtradas por mês",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     },
@@ -127,7 +132,7 @@ fun ConsultarDespesasScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1E293B)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -156,8 +161,8 @@ fun ConsultarDespesasScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(16.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         ),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -212,7 +217,7 @@ fun ConsultarDespesasScreen(
                     ) {
                         Text(
                             text = "Nenhuma despesa para este mês.",
-                            color = Color(0xFF475569),
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -227,7 +232,7 @@ fun ConsultarDespesasScreen(
                                 text = "Despesas Fixas / Recorrentes",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B),
+                                color = MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                             )
 
@@ -238,8 +243,8 @@ fun ConsultarDespesasScreen(
                                         .shadow(
                                             elevation = 8.dp,
                                             shape = RoundedCornerShape(20.dp),
-                                            ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
-                                            spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
+                                            ambientColor = primaryColor.copy(alpha = 0.15f),
+                                            spotColor = secondaryColor.copy(alpha = 0.2f)
                                         ),
                                     shape = RoundedCornerShape(20.dp),
                                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -264,13 +269,13 @@ fun ConsultarDespesasScreen(
                                                     modifier = Modifier
                                                         .size(42.dp)
                                                         .clip(CircleShape)
-                                                        .background(Color(0xFF9333EA).copy(alpha = 0.15f)),
+                                                        .background(primaryColor.copy(alpha = 0.15f)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Icon(
                                                         imageVector = Icons.Default.EventRepeat,
                                                         contentDescription = null,
-                                                        tint = Color(0xFF7C3AED),
+                                                        tint = primaryColor,
                                                         modifier = Modifier.size(22.dp)
                                                     )
                                                 }
@@ -282,12 +287,12 @@ fun ConsultarDespesasScreen(
                                                         text = fixa.descricao,
                                                         fontWeight = FontWeight.Bold,
                                                         fontSize = 16.sp,
-                                                        color = Color(0xFF3B0764)
+                                                        color = primaryColor
                                                     )
                                                     Text(
                                                         text = "•  Despesa Fixa / Recorrente",
                                                         fontSize = 12.sp,
-                                                        color = Color(0xFF6B21A8),
+                                                        color = secondaryColor,
                                                         fontWeight = FontWeight.Medium
                                                     )
                                                 }
@@ -315,7 +320,7 @@ fun ConsultarDespesasScreen(
                                 text = "Despesas Avulsas e de Cartão",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B),
+                                color = MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
                             )
 
@@ -334,8 +339,8 @@ fun ConsultarDespesasScreen(
                                         .shadow(
                                             elevation = 8.dp,
                                             shape = RoundedCornerShape(20.dp),
-                                            ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
-                                            spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
+                                            ambientColor = primaryColor.copy(alpha = 0.15f),
+                                            spotColor = secondaryColor.copy(alpha = 0.2f)
                                         ),
                                     shape = RoundedCornerShape(20.dp),
                                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -360,13 +365,13 @@ fun ConsultarDespesasScreen(
                                                     modifier = Modifier
                                                         .size(42.dp)
                                                         .clip(CircleShape)
-                                                        .background(Color(0xFF9333EA).copy(alpha = 0.15f)),
+                                                        .background(primaryColor.copy(alpha = 0.15f)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Icon(
                                                         imageVector = Icons.Default.ArrowDownward,
                                                         contentDescription = null,
-                                                        tint = Color(0xFF7C3AED),
+                                                        tint = primaryColor,
                                                         modifier = Modifier.size(22.dp)
                                                     )
                                                 }
@@ -378,7 +383,7 @@ fun ConsultarDespesasScreen(
                                                         text = despesa.descricao,
                                                         fontWeight = FontWeight.Bold,
                                                         fontSize = 16.sp,
-                                                        color = Color(0xFF3B0764)
+                                                        color = primaryColor
                                                     )
                                                     Row(
                                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -387,7 +392,7 @@ fun ConsultarDespesasScreen(
                                                             Text(
                                                                 text = dataFormatada,
                                                                 fontSize = 12.sp,
-                                                                color = Color(0xFF6B21A8)
+                                                                color = secondaryColor
                                                             )
                                                         }
                                                         val forma = despesa.formaPagamento
@@ -395,7 +400,7 @@ fun ConsultarDespesasScreen(
                                                             Text(
                                                                 text = "•  $forma",
                                                                 fontSize = 12.sp,
-                                                                color = Color(0xFF6B21A8),
+                                                                color = secondaryColor,
                                                                 fontWeight = FontWeight.Medium
                                                             )
                                                         }

@@ -37,19 +37,21 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            ControleFinanceiroTheme {
+            val viewModel: FinanceViewModel = viewModel()
+            val currentTheme by viewModel.currentTheme.collectAsState()
+
+            ControleFinanceiroTheme(appTheme = currentTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = Color(0xFFF8FAFC)
                 ) {
-                    val viewModel: FinanceViewModel = viewModel()
                     var currentScreen by remember { mutableStateOf("home") }
 
                     when (currentScreen) {
                         "home" -> {
                             HomeScreen(
                                 viewModel = viewModel,
-                                interstitialAdManager = interstitialAdManager, // Passando para a Home
+                                interstitialAdManager = interstitialAdManager,
                                 onNavigateToCartoes = { currentScreen = "cartoes" },
                                 onNavigateToAdicionarDespesaCartao = { currentScreen = "adicionar_despesa_cartao" },
                                 onNavigateToAdicionarDespesaVista = { currentScreen = "adicionar_despesa_vista" },

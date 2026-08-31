@@ -48,19 +48,24 @@ fun AdicionarDespesaVistaScreen(
     var dataMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
 
+    // Cores dinâmicas retiradas do tema atual do Material 3
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
+    // Gradiente alinhado do tom mais escuro para o vibrante (da esquerda para a direita)
     val inputBackgroundBrush = Brush.horizontalGradient(
         colors = listOf(
-            Color(0xFF1E293B),
-            Color(0xFF2563EB)
+            primaryColor,
+            secondaryColor
         )
     )
 
@@ -99,12 +104,12 @@ fun AdicionarDespesaVistaScreen(
                                 text = "Nova Despesa à Vista",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "Adicione a Despesa",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     },
@@ -113,7 +118,7 @@ fun AdicionarDespesaVistaScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1E293B)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -142,11 +147,11 @@ fun AdicionarDespesaVistaScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         ),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
                         modifier = Modifier
@@ -160,8 +165,8 @@ fun AdicionarDespesaVistaScreen(
                                 .shadow(
                                     elevation = 6.dp,
                                     shape = RoundedCornerShape(14.dp),
-                                    ambientColor = Color(0xFF0F172A).copy(alpha = 0.15f),
-                                    spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                                    ambientColor = primaryColor.copy(alpha = 0.15f),
+                                    spotColor = secondaryColor.copy(alpha = 0.25f)
                                 )
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(inputBackgroundBrush)
@@ -173,7 +178,7 @@ fun AdicionarDespesaVistaScreen(
                                 singleLine = true,
                                 shape = RoundedCornerShape(14.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.Transparent,
+                                    focusedBorderColor = primaryColor.copy(alpha = 0.6f),
                                     unfocusedBorderColor = Color.Transparent,
                                     focusedLabelColor = Color.White,
                                     unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
@@ -193,8 +198,8 @@ fun AdicionarDespesaVistaScreen(
                                 .shadow(
                                     elevation = 6.dp,
                                     shape = RoundedCornerShape(14.dp),
-                                    ambientColor = Color(0xFF0F172A).copy(alpha = 0.15f),
-                                    spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                                    ambientColor = primaryColor.copy(alpha = 0.15f),
+                                    spotColor = secondaryColor.copy(alpha = 0.25f)
                                 )
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(inputBackgroundBrush)
@@ -207,7 +212,7 @@ fun AdicionarDespesaVistaScreen(
                                 singleLine = true,
                                 shape = RoundedCornerShape(14.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.Transparent,
+                                    focusedBorderColor = primaryColor.copy(alpha = 0.6f),
                                     unfocusedBorderColor = Color.Transparent,
                                     focusedLabelColor = Color.White,
                                     unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
@@ -227,8 +232,8 @@ fun AdicionarDespesaVistaScreen(
                                 .shadow(
                                     elevation = 6.dp,
                                     shape = RoundedCornerShape(14.dp),
-                                    ambientColor = Color(0xFF0F172A).copy(alpha = 0.15f),
-                                    spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                                    ambientColor = primaryColor.copy(alpha = 0.15f),
+                                    spotColor = secondaryColor.copy(alpha = 0.25f)
                                 )
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(inputBackgroundBrush)
@@ -240,7 +245,7 @@ fun AdicionarDespesaVistaScreen(
                                 singleLine = true,
                                 shape = RoundedCornerShape(14.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.Transparent,
+                                    focusedBorderColor = primaryColor.copy(alpha = 0.6f),
                                     unfocusedBorderColor = Color.Transparent,
                                     focusedLabelColor = Color.White,
                                     unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
@@ -261,8 +266,8 @@ fun AdicionarDespesaVistaScreen(
                                 .shadow(
                                     elevation = 6.dp,
                                     shape = RoundedCornerShape(14.dp),
-                                    ambientColor = Color(0xFF0F172A).copy(alpha = 0.15f),
-                                    spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                                    ambientColor = primaryColor.copy(alpha = 0.15f),
+                                    spotColor = secondaryColor.copy(alpha = 0.25f)
                                 )
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(inputBackgroundBrush)
@@ -297,7 +302,7 @@ fun AdicionarDespesaVistaScreen(
                                 onDismissRequest = { expandedCategoriaDropdown = false },
                                 modifier = Modifier
                                     .fillMaxWidth(0.85f)
-                                    .background(Color(0xFF1E293B))
+                                    .background(primaryColor)
                             ) {
                                 if (categorias.isEmpty()) {
                                     DropdownMenuItem(
@@ -328,8 +333,8 @@ fun AdicionarDespesaVistaScreen(
                                 .shadow(
                                     elevation = 6.dp,
                                     shape = RoundedCornerShape(14.dp),
-                                    ambientColor = Color(0xFF0F172A).copy(alpha = 0.15f),
-                                    spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                                    ambientColor = primaryColor.copy(alpha = 0.15f),
+                                    spotColor = secondaryColor.copy(alpha = 0.25f)
                                 )
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(inputBackgroundBrush)
@@ -390,8 +395,8 @@ fun AdicionarDespesaVistaScreen(
                         .shadow(
                             elevation = 10.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         ),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
@@ -401,14 +406,7 @@ fun AdicionarDespesaVistaScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color(0xFF1E293B),
-                                        Color(0xFF2563EB)
-                                    )
-                                )
-                            )
+                            .background(inputBackgroundBrush)
                             .padding(18.dp),
                         contentAlignment = Alignment.Center
                     ) {

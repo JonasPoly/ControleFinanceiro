@@ -40,21 +40,25 @@ fun DespesasFixasScreen(
     viewModel: FinanceViewModel = viewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
-    val gradientStart = Color(0xFF0F172A)
-    val gradientEnd = Color(0xFF3B82F6)
+    // Cores dinâmicas retiradas do tema atual do Material 3
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
     val expenseColor = Color(0xFFF87171)
 
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
     val blueGradientBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1E293B), Color(0xFF2563EB))
+        colors = listOf(
+            primaryColor,
+            secondaryColor
+        )
     )
 
     val despesasFixas by viewModel.despesasFixas.collectAsState()
@@ -87,12 +91,12 @@ fun DespesasFixasScreen(
                                 text = "Despesas Fixas e Sazonais",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "Controle contas recorrentes por mes",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     },
@@ -101,7 +105,7 @@ fun DespesasFixasScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1E293B)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -139,13 +143,13 @@ fun DespesasFixasScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(20.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.25f)
                         )
                         .clip(RoundedCornerShape(20.dp))
                         .background(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(gradientStart, gradientEnd)
+                                colors = listOf(primaryColor, secondaryColor)
                             )
                         )
                         .padding(18.dp)
@@ -199,11 +203,11 @@ fun DespesasFixasScreen(
                         .shadow(
                             elevation = 4.dp,
                             shape = RoundedCornerShape(14.dp),
-                            ambientColor = Color(0xFF1E3A8A).copy(alpha = 0.2f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f)
                         ),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2563EB)
+                        containerColor = secondaryColor
                     )
                 ) {
                     Icon(
@@ -232,7 +236,7 @@ fun DespesasFixasScreen(
                     ) {
                         Text(
                             text = "Nenhuma despesa fixa ou sazonal cadastrada.",
-                            color = Color(0xFF475569),
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -255,7 +259,7 @@ fun DespesasFixasScreen(
                                     .shadow(
                                         elevation = 4.dp,
                                         shape = RoundedCornerShape(16.dp),
-                                        ambientColor = Color(0xFF0F172A).copy(alpha = 0.15f)
+                                        ambientColor = primaryColor.copy(alpha = 0.15f)
                                     ),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -458,7 +462,7 @@ fun DespesasFixasScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(if (isSelected) Color(0xFF2563EB) else Color(0xFFE2E8F0))
+                                            .background(if (isSelected) secondaryColor else MaterialTheme.colorScheme.surfaceVariant)
                                             .clickable {
                                                 mesesSelecionados[mesReal] = !isSelected
                                             }
@@ -469,7 +473,7 @@ fun DespesasFixasScreen(
                                             text = nomeMes,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) Color.White else Color(0xFF334155),
+                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                                             textAlign = TextAlign.Center
                                         )
                                     }

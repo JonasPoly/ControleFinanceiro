@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -16,7 +17,7 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.EventRepeat
-import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PieChart
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.polystitch.controlefinanceiro.ui.theme.AppTheme
 import com.polystitch.controlefinanceiro.utils.PdfGenerator
 import com.polystitch.controlefinanceiro.viewmodel.FinanceViewModel
 import java.util.Calendar
@@ -55,6 +57,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val activity = context as? android.app.Activity
     val transacoes by viewModel.transacoes.collectAsState(initial = emptyList())
+    val currentTheme by viewModel.currentTheme.collectAsState()
 
     var selectedCalendar by remember {
         mutableStateOf(Calendar.getInstance().apply {
@@ -84,23 +87,27 @@ fun HomeScreen(
     var showDialog by remember { mutableStateOf(false) }
     var tipoMovimentacao by remember { mutableStateOf("RECEITA") }
     var valorInput by remember { mutableStateOf("") }
+    var showThemeDialog by remember { mutableStateOf(false) }
 
-    val gradientStart = Color(0xFF0F172A)
-    val gradientEnd = Color(0xFF3B82F6)
     val successColor = Color(0xFF34D399)
     val expenseColor = Color(0xFFF87171)
 
+    // Cores dinâmicas baseadas no tema atual do MaterialTheme
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val backgroundSurface = MaterialTheme.colorScheme.background
+
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            backgroundSurface,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
-    val blueGradientBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1E293B), Color(0xFF2563EB))
+    val dynamicCardBrush = Brush.horizontalGradient(
+        colors = listOf(primaryColor.copy(alpha = 0.85f), secondaryColor)
     )
 
     Box(
@@ -117,14 +124,39 @@ fun HomeScreen(
                                 text = "Visão Geral",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "Controle do Sistema",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontSize = 10.sp,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
+                        }
+                    },
+                    actions = {
+                        TextButton(
+                            onClick = { showThemeDialog = true },
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Palette,
+                                    contentDescription = "Alterar Tema",
+                                    tint = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.height(1.dp))
+                                Text(
+                                    text = "altere o tema",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -144,7 +176,6 @@ fun HomeScreen(
                     .padding(horizontal = 14.dp, vertical = 2.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Seletor de Mês Compacto
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -155,7 +186,7 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(blueGradientBrush)
+                            .background(dynamicCardBrush)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Row(
@@ -197,13 +228,12 @@ fun HomeScreen(
                     }
                 }
 
-                // Card Principal de Saldo Compacto
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(elevation = 8.dp, shape = RoundedCornerShape(18.dp))
                         .clip(RoundedCornerShape(18.dp))
-                        .background(brush = Brush.horizontalGradient(colors = listOf(gradientStart, gradientEnd)))
+                        .background(brush = dynamicCardBrush)
                         .padding(12.dp)
                 ) {
                     Column(
@@ -283,7 +313,6 @@ fun HomeScreen(
                     }
                 }
 
-                // Lista de Botões de Menu Compactados
                 Column(
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                     modifier = Modifier
@@ -295,7 +324,7 @@ fun HomeScreen(
                         subtitle = "Pix, Débito ou Dinheiro",
                         icon = Icons.Default.Payments,
                         onClick = onNavigateToAdicionarDespesaVista,
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     HomeMenuButton(
@@ -303,7 +332,7 @@ fun HomeScreen(
                         subtitle = "Insira compras na fatura",
                         icon = Icons.Default.CreditCard,
                         onClick = onNavigateToAdicionarDespesaCartao,
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     HomeMenuButton(
@@ -311,15 +340,15 @@ fun HomeScreen(
                         subtitle = "Gerencie contas mensais automáticas",
                         icon = Icons.Default.EventRepeat,
                         onClick = onNavigateToDespesasFixas,
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     HomeMenuButton(
                         title = "Consultar Despesas",
                         subtitle = "Visualize todas as despesas",
-                        icon = Icons.Default.ListAlt,
+                        icon = Icons.AutoMirrored.Filled.ListAlt,
                         onClick = onNavigateToConsultarDespesas,
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     HomeMenuButton(
@@ -327,7 +356,7 @@ fun HomeScreen(
                         subtitle = "Gráficos de gastos e despesas",
                         icon = Icons.Default.PieChart,
                         onClick = onNavigateToGraficos,
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     HomeMenuButton(
@@ -335,7 +364,7 @@ fun HomeScreen(
                         subtitle = "Gerencie cartões e faturas",
                         icon = Icons.Default.CreditCard,
                         onClick = onNavigateToCartoes,
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     HomeMenuButton(
@@ -343,7 +372,7 @@ fun HomeScreen(
                         subtitle = "Cadastre e organize categorias",
                         icon = Icons.Default.Category,
                         onClick = onNavigateToCategorias,
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     HomeMenuButton(
@@ -382,7 +411,7 @@ fun HomeScreen(
                                 acaoGerarPdf()
                             }
                         },
-                        blueGradientBrush = blueGradientBrush
+                        cardBrush = dynamicCardBrush
                     )
 
                     com.polystitch.controlefinanceiro.ui.AdMobBanner(
@@ -392,6 +421,76 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+
+        if (showThemeDialog) {
+            AlertDialog(
+                onDismissRequest = { showThemeDialog = false },
+                title = { Text(text = "Escolher Tema do App") },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Selecione a identidade visual que melhor combina com o seu estilo:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+
+                        val themes = listOf(
+                            Triple(AppTheme.AZUL, "Azul Corporativo", "Visual profissional e sóbrio em tons de azul e marinho"),
+                            Triple(AppTheme.ROXO, "Roxo / Lavanda", "Estilo moderno e elegante com nuances arroxeadas"),
+                            Triple(AppTheme.VERDE, "Verde Menta", "Tema focado em finanças, frescor e equilíbrio visual"),
+                            Triple(AppTheme.ESCURSO, "Escuro / Midnight", "Modo escuro profissional para menor fadiga visual"),
+                            Triple(AppTheme.AMBAR, "Âmbar & Ouro", "Tons quentes inspirados em luxo e sofisticação"),
+                            Triple(AppTheme.RUBI, "Rubi Vibrante", "Cores marcantes e dinâmicas com destaque em magenta"),
+                            Triple(AppTheme.OCEANO, "Oceano Turquesa", "Inspiração nas profundezas com verde-água e teal"),
+                            Triple(AppTheme.FLORES, "Flores & Rosé", "Tons rosados e delicados com alta legibilidade")
+                        )
+
+                        themes.forEach { (themeEnum, nomeTema, legenda) ->
+                            val isSelected = currentTheme == themeEnum
+                            Button(
+                                onClick = { viewModel.setTheme(themeEnum); showThemeDialog = false },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    Text(
+                                        text = nomeTema,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = legenda,
+                                        fontSize = 11.sp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showThemeDialog = false }) {
+                        Text("Fechar")
+                    }
+                }
+            )
         }
 
         if (showDialog) {
@@ -444,7 +543,7 @@ fun HomeMenuButton(
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
-    blueGradientBrush: Brush
+    cardBrush: Brush
 ) {
     Card(
         onClick = onClick,
@@ -457,8 +556,8 @@ fun HomeMenuButton(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(blueGradientBrush)
-                .padding(horizontal = 10.dp, vertical = 7.dp) // Padding interno reduzido
+                .background(cardBrush)
+                .padding(horizontal = 10.dp, vertical = 7.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -2,8 +2,6 @@ package com.polystitch.controlefinanceiro.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,17 +60,25 @@ fun CartoesScreen(
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     )
 
+    // Cores dinâmicas retiradas do tema atual do Material 3
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
+    // Gradiente alinhado do tom mais escuro para o vibrante (da esquerda para a direita)
     val cardBackgroundBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1E293B), Color(0xFF2563EB))
+        colors = listOf(
+            primaryColor,
+            secondaryColor
+        )
     )
 
     Box(
@@ -89,12 +95,12 @@ fun CartoesScreen(
                                 text = if (cartaoSelecionadoDetalhes == null) "Central de Cartões" else "Fatura: ${cartaoSelecionadoDetalhes?.nome}",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "Clique no Cartão para abrir a Fatura",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     },
@@ -109,7 +115,7 @@ fun CartoesScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1E293B)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -140,7 +146,7 @@ fun CartoesScreen(
                             .fillMaxWidth()
                             .shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp)),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B))
+                        colors = CardDefaults.cardColors(containerColor = primaryColor)
                     ) {
                         Row(
                             modifier = Modifier
@@ -223,7 +229,7 @@ fun CartoesScreen(
                         ) {
                             Text(
                                 text = "Nenhum gasto registrado neste mês.",
-                                color = Color(0xFF1E293B).copy(alpha = 0.7f),
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -237,7 +243,7 @@ fun CartoesScreen(
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(16.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                                 ) {
                                     Row(
                                         modifier = Modifier
@@ -247,9 +253,9 @@ fun CartoesScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Column(modifier = Modifier.weight(1f)) {
-                                            Text(text = gasto.descricao, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                            Text(text = gasto.descricao, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
                                             Spacer(modifier = Modifier.height(2.dp))
-                                            Text(text = "Forma: ${gasto.formaPagamento}", fontSize = 12.sp, color = Color(0xFF64748B))
+                                            Text(text = "Forma: ${gasto.formaPagamento}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                                         }
                                         Text(
                                             text = formatoBRL.format(gasto.valor),
@@ -277,8 +283,8 @@ fun CartoesScreen(
                             .shadow(
                                 elevation = 10.dp,
                                 shape = RoundedCornerShape(20.dp),
-                                ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                                spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                                ambientColor = primaryColor.copy(alpha = 0.2f),
+                                spotColor = secondaryColor.copy(alpha = 0.3f)
                             ),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -341,7 +347,7 @@ fun CartoesScreen(
                         ) {
                             Text(
                                 text = "Nenhum cartão cadastrado ainda.",
-                                color = Color(0xFF1E293B).copy(alpha = 0.7f),
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -359,8 +365,8 @@ fun CartoesScreen(
                                         .shadow(
                                             elevation = 8.dp,
                                             shape = RoundedCornerShape(20.dp),
-                                            ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
-                                            spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
+                                            ambientColor = primaryColor.copy(alpha = 0.15f),
+                                            spotColor = secondaryColor.copy(alpha = 0.2f)
                                         ),
                                     shape = RoundedCornerShape(20.dp),
                                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -371,8 +377,8 @@ fun CartoesScreen(
                                             .background(
                                                 brush = Brush.horizontalGradient(
                                                     colors = listOf(
-                                                        Color(0xFFE9D5FF),
-                                                        Color(0xFFF3E8FF)
+                                                        primaryColor.copy(alpha = 0.15f),
+                                                        secondaryColor.copy(alpha = 0.1f)
                                                     )
                                                 )
                                             )
@@ -392,13 +398,13 @@ fun CartoesScreen(
                                                     modifier = Modifier
                                                         .size(42.dp)
                                                         .clip(CircleShape)
-                                                        .background(Color(0xFF9333EA).copy(alpha = 0.15f)),
+                                                        .background(primaryColor.copy(alpha = 0.15f)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Icon(
                                                         imageVector = Icons.Default.CreditCard,
                                                         contentDescription = null,
-                                                        tint = Color(0xFF7C3AED),
+                                                        tint = primaryColor,
                                                         modifier = Modifier.size(22.dp)
                                                     )
                                                 }
@@ -407,13 +413,13 @@ fun CartoesScreen(
                                                         text = cartao.nome,
                                                         fontSize = 16.sp,
                                                         fontWeight = FontWeight.Bold,
-                                                        color = Color(0xFF3B0764)
+                                                        color = primaryColor
                                                     )
                                                     Spacer(modifier = Modifier.height(3.dp))
                                                     Text(
                                                         text = "Fechamento: Dia ${cartao.diaFechamento}  •  Pagamento: Dia ${cartao.diaPagamento}",
                                                         fontSize = 12.sp,
-                                                        color = Color(0xFF6B21A8)
+                                                        color = secondaryColor
                                                     )
                                                 }
                                             }
@@ -435,7 +441,7 @@ fun CartoesScreen(
                                                     Icon(
                                                         imageVector = Icons.Default.Edit,
                                                         contentDescription = "Editar",
-                                                        tint = Color(0xFF7C3AED),
+                                                        tint = primaryColor,
                                                         modifier = Modifier.size(18.dp)
                                                     )
                                                 }

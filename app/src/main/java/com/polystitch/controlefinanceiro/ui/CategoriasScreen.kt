@@ -37,17 +37,24 @@ fun CategoriasScreen(
     val tipoSelecionado by remember { mutableStateOf("DESPESA") }
     var mostrarDialogo by remember { mutableStateOf(false) }
 
+    // Cores dinâmicas retiradas do tema atual do Material 3
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
-    val blueGradientBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1E293B), Color(0xFF2563EB))
+    val cardBackgroundBrush = Brush.horizontalGradient(
+        colors = listOf(
+            primaryColor,
+            secondaryColor
+        )
     )
 
     Box(
@@ -64,12 +71,12 @@ fun CategoriasScreen(
                                 text = "Gerenciar Categorias",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "Cadastre a Categoria",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     },
@@ -78,7 +85,7 @@ fun CategoriasScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1E293B)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -101,15 +108,15 @@ fun CategoriasScreen(
             ) {
                 Spacer(modifier = Modifier.height(2.dp))
 
-                // Botão de Adicionar no topo com o mesmo estilo/degradê dos menus da Home
+                // Botão de Adicionar no topo
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(
                             elevation = 6.dp,
                             shape = RoundedCornerShape(16.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.18f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                            ambientColor = primaryColor.copy(alpha = 0.18f),
+                            spotColor = secondaryColor.copy(alpha = 0.25f)
                         ),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -117,7 +124,7 @@ fun CategoriasScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(blueGradientBrush)
+                            .background(cardBackgroundBrush)
                             .clickable { mostrarDialogo = true }
                             .padding(horizontal = 14.dp, vertical = 14.dp)
                     ) {
@@ -174,7 +181,7 @@ fun CategoriasScreen(
                     ) {
                         Text(
                             text = "Nenhuma categoria cadastrada.",
-                            color = Color(0xFF475569),
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -190,8 +197,8 @@ fun CategoriasScreen(
                                     .shadow(
                                         elevation = 6.dp,
                                         shape = RoundedCornerShape(16.dp),
-                                        ambientColor = Color(0xFF0F172A).copy(alpha = 0.18f),
-                                        spotColor = Color(0xFF1E3A8A).copy(alpha = 0.25f)
+                                        ambientColor = primaryColor.copy(alpha = 0.18f),
+                                        spotColor = secondaryColor.copy(alpha = 0.25f)
                                     ),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -199,7 +206,7 @@ fun CategoriasScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(blueGradientBrush)
+                                        .background(cardBackgroundBrush)
                                         .padding(horizontal = 14.dp, vertical = 12.dp)
                                 ) {
                                     Row(

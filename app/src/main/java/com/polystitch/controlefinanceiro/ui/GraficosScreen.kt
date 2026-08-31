@@ -35,6 +35,10 @@ fun GraficosScreen(
     viewModel: FinanceViewModel = viewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
+    // Cores dinâmicas retiradas do tema atual do Material 3
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+
     val transacoes: List<TransacaoEntity> by viewModel.transacoes.collectAsState(initial = emptyList())
     val despesasFixas: List<DespesaFixaEntity> by viewModel.despesasFixas.collectAsState(initial = emptyList())
     val categorias by viewModel.categorias.collectAsState(initial = emptyList())
@@ -107,21 +111,24 @@ fun GraficosScreen(
 
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFFF1F5F9),
-            Color(0xFF93C5FD),
-            Color(0xFF3B82F6)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface,
+            primaryColor.copy(alpha = 0.2f),
+            primaryColor.copy(alpha = 0.5f)
         )
     )
 
     val blueGradientBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1E293B), Color(0xFF2563EB))
+        colors = listOf(
+            primaryColor,
+            secondaryColor
+        )
     )
 
     val cardBackgroundBrush = Brush.horizontalGradient(
         colors = listOf(
-            Color(0xFFE9D5FF),
-            Color(0xFFF3E8FF)
+            primaryColor.copy(alpha = 0.15f),
+            secondaryColor.copy(alpha = 0.1f)
         )
     )
 
@@ -139,12 +146,12 @@ fun GraficosScreen(
                                 text = "Análise Gráfica",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "Distribuição de despesas",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF475569)
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                         }
                     },
@@ -153,7 +160,7 @@ fun GraficosScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
-                                tint = Color(0xFF1E293B)
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -179,8 +186,8 @@ fun GraficosScreen(
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(16.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         ),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -238,8 +245,8 @@ fun GraficosScreen(
                         .shadow(
                             elevation = 12.dp,
                             shape = RoundedCornerShape(24.dp),
-                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
-                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         ),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -299,7 +306,7 @@ fun GraficosScreen(
                     ) {
                         Text(
                             text = "Nenhum gasto registrado para este mês.",
-                            color = Color(0xFF475569),
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -316,7 +323,7 @@ fun GraficosScreen(
                                     text = "Gastos por Categoria",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1E293B)
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
 
@@ -331,8 +338,8 @@ fun GraficosScreen(
                                         .shadow(
                                             elevation = 8.dp,
                                             shape = RoundedCornerShape(16.dp),
-                                            ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
-                                            spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
+                                            ambientColor = primaryColor.copy(alpha = 0.15f),
+                                            spotColor = secondaryColor.copy(alpha = 0.2f)
                                         ),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -355,7 +362,7 @@ fun GraficosScreen(
                                                     text = categoria,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 15.sp,
-                                                    color = Color(0xFF3B0764),
+                                                    color = primaryColor,
                                                     modifier = Modifier.weight(1f)
                                                 )
                                                 Text(
@@ -372,8 +379,8 @@ fun GraficosScreen(
                                                     .fillMaxWidth()
                                                     .height(8.dp)
                                                     .clip(RoundedCornerShape(4.dp)),
-                                                color = Color(0xFF7C3AED),
-                                                trackColor = Color(0xFFE9D5FF)
+                                                color = primaryColor,
+                                                trackColor = primaryColor.copy(alpha = 0.2f)
                                             )
                                         }
                                     }
@@ -388,7 +395,7 @@ fun GraficosScreen(
                                     text = "Gastos por Forma de Pagamento",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1E293B)
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
 
@@ -403,8 +410,8 @@ fun GraficosScreen(
                                         .shadow(
                                             elevation = 8.dp,
                                             shape = RoundedCornerShape(16.dp),
-                                            ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
-                                            spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
+                                            ambientColor = primaryColor.copy(alpha = 0.15f),
+                                            spotColor = secondaryColor.copy(alpha = 0.2f)
                                         ),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -427,7 +434,7 @@ fun GraficosScreen(
                                                     text = forma,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 15.sp,
-                                                    color = Color(0xFF3B0764),
+                                                    color = primaryColor,
                                                     modifier = Modifier.weight(1f)
                                                 )
                                                 Text(
@@ -444,8 +451,8 @@ fun GraficosScreen(
                                                     .fillMaxWidth()
                                                     .height(8.dp)
                                                     .clip(RoundedCornerShape(4.dp)),
-                                                color = Color(0xFF7C3AED),
-                                                trackColor = Color(0xFFE9D5FF)
+                                                color = primaryColor,
+                                                trackColor = primaryColor.copy(alpha = 0.2f)
                                             )
                                         }
                                     }
