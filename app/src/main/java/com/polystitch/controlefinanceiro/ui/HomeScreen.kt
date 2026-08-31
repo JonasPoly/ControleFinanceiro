@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CreditCard
@@ -32,10 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.polystitch.controlefinanceiro.viewmodel.FinanceViewModel
-import java.time.Instant
-import java.time.ZoneId
-import java.time.YearMonth
-import java.time.format.TextStyle
+import java.util.Calendar
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,32 +45,42 @@ fun HomeScreen(
     onNavigateToAdicionarDespesaVista: () -> Unit = {},
     onNavigateToConsultarDespesas: () -> Unit = {},
     onNavigateToGraficos: () -> Unit = {},
-    onNavigateToDespesasFixas: () -> Unit = {}
+    onNavigateToDespesasFixas: () -> Unit = {},
+    onNavigateToCategorias: () -> Unit = {}
 ) {
     val transacoes by viewModel.transacoes.collectAsState(initial = emptyList())
 
-    var selectedYearMonth by remember { mutableStateOf(YearMonth.now()) }
+    var selectedCalendar by remember {
+        mutableStateOf(Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+        })
+    }
 
-    val transacoesFiltradas = remember(transacoes, selectedYearMonth) {
+    val selectedYear = selectedCalendar.get(Calendar.YEAR)
+    val selectedMonth = selectedCalendar.get(Calendar.MONTH) // 0 a 11
+
+    val transacoesFiltradas = remember(transacoes, selectedYear, selectedMonth) {
         transacoes.filter { tx ->
             try {
-                val txYearMonth = YearMonth.from(
-                    Instant.ofEpochMilli(tx.data)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                )
-                txYearMonth == selectedYearMonth
+                val calTx = Calendar.getInstance().apply { timeInMillis = tx.data }
+                calTx.get(Calendar.YEAR) == selectedYear && calTx.get(Calendar.MONTH) == selectedMonth
             } catch (_: Exception) {
-                true
+                false
             }
         }
     }
 
-    val receitaTotal = transacoesFiltradas.filter { it.tipo == "RECEITA" }.sumOf { it.valor }
+    // Receitas somam entradas normais (RECEITA) e subtraem correções/retiradas manuais de entrada
+    val receitaTotal = transacoesFiltradas.filter { it.tipo == "RECEITA" }.sumOf { it.valor } -
+            transacoesFiltradas.filter { it.tipo == "RETIRADA_RECEITA" }.sumOf { it.valor }
+
+    // Saídas contabilizam apenas as despesas reais do usuário
     val despesaTotal = transacoesFiltradas.filter { it.tipo == "DESPESA" }.sumOf { it.valor }
+
     val saldoTotal = receitaTotal - despesaTotal
 
     var showDialog by remember { mutableStateOf(false) }
+    var tipoMovimentacao by remember { mutableStateOf("RECEITA") } // "RECEITA" ou "RETIRADA_RECEITA"
     var valorInput by remember { mutableStateOf("") }
 
     val gradientStart = Color(0xFF0F172A)
@@ -110,7 +118,7 @@ fun HomeScreen(
                                 color = Color(0xFF1E293B)
                             )
                             Text(
-                                text = "Polystitch Finance",
+                                text = "Controle do Sistema",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF475569)
                             )
@@ -133,7 +141,6 @@ fun HomeScreen(
                     .padding(horizontal = 18.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Seletor de Mês intermediário
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -158,7 +165,11 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
-                                onClick = { selectedYearMonth = selectedYearMonth.minusMonths(1) },
+                                onClick = {
+                                    selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                        add(Calendar.MONTH, -1)
+                                    }
+                                },
                                 modifier = Modifier.size(34.dp)
                             ) {
                                 Icon(
@@ -168,17 +179,21 @@ fun HomeScreen(
                                 )
                             }
 
-                            val mesNome = selectedYearMonth.month.getDisplayName(TextStyle.FULL, Locale("pt", "BR"))
-                                .replaceFirstChar { it.uppercase() }
+                            val mesNome = selectedCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale("pt", "BR"))
+                                ?.replaceFirstChar { it.uppercase() } ?: ""
                             Text(
-                                text = "$mesNome ${selectedYearMonth.year}",
+                                text = "$mesNome $selectedYear",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
 
                             IconButton(
-                                onClick = { selectedYearMonth = selectedYearMonth.plusMonths(1) },
+                                onClick = {
+                                    selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                        add(Calendar.MONTH, 1)
+                                    }
+                                },
                                 modifier = Modifier.size(34.dp)
                             ) {
                                 Icon(
@@ -191,7 +206,6 @@ fun HomeScreen(
                     }
                 }
 
-                // Card Principal de Saldo intermediário
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -209,45 +223,78 @@ fun HomeScreen(
                         )
                         .padding(18.dp)
                 ) {
-                    Column {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Saldo Total do Mês",
-                                color = Color.White.copy(alpha = 0.75f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-
-                            IconButton(
-                                onClick = { showDialog = true },
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.15f))
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Adicionar Receita",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "Saldo Total do Mês",
+                                    color = Color.White.copy(alpha = 0.75f),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = "R$ %.2f".format(saldoTotal),
+                                    color = Color.White,
+                                    fontSize = 30.sp,
+                                    fontWeight = FontWeight.ExtraBold
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    tipoMovimentacao = "RECEITA"
+                                    showDialog = true
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White.copy(alpha = 0.2f)
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(text = "Adicionar", color = Color.White, fontSize = 13.sp)
+                            }
 
-                        Text(
-                            text = "R$ %.2f".format(saldoTotal),
-                            color = Color.White,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
+                            Button(
+                                onClick = {
+                                    tipoMovimentacao = "RETIRADA_RECEITA"
+                                    showDialog = true
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White.copy(alpha = 0.2f)
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDownward,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(text = "Retirar", color = Color.White, fontSize = 13.sp)
+                            }
+                        }
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -269,7 +316,6 @@ fun HomeScreen(
                     }
                 }
 
-                // Botões de Ação com tamanho equilibrado
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier
@@ -323,6 +369,14 @@ fun HomeScreen(
                         onClick = onNavigateToCartoes,
                         blueGradientBrush = blueGradientBrush
                     )
+
+                    HomeMenuButton(
+                        title = "Gerenciar Categorias",
+                        subtitle = "Cadastre e organize categorias",
+                        icon = Icons.Default.Category,
+                        onClick = onNavigateToCategorias,
+                        blueGradientBrush = blueGradientBrush
+                    )
                 }
             }
         }
@@ -330,7 +384,9 @@ fun HomeScreen(
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text("Adicionar Receita") },
+                title = {
+                    Text(text = if (tipoMovimentacao == "RECEITA") "Adicionar Receita" else "Retirar Entrada (Correção)")
+                },
                 text = {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -349,15 +405,20 @@ fun HomeScreen(
                         onClick = {
                             val valorParsed = valorInput.replace(",", ".").toDoubleOrNull()
                             if (valorParsed != null && valorParsed > 0) {
-                                val targetDate = selectedYearMonth.atDay(1)
-                                    .atStartOfDay(ZoneId.systemDefault())
-                                    .toInstant()
-                                    .toEpochMilli()
+                                val targetDate = (selectedCalendar.clone() as Calendar).apply {
+                                    set(Calendar.DAY_OF_MONTH, 1)
+                                    set(Calendar.HOUR_OF_DAY, 0)
+                                    set(Calendar.MINUTE, 0)
+                                    set(Calendar.SECOND, 0)
+                                    set(Calendar.MILLISECOND, 0)
+                                }.timeInMillis
+
+                                val descricaoTx = if (tipoMovimentacao == "RECEITA") "Receita Manual" else "Estorno / Retirada de Entrada"
 
                                 viewModel.adicionarTransacao(
-                                    descricao = "Receita",
+                                    descricao = descricaoTx,
                                     valor = valorParsed,
-                                    tipo = "RECEITA",
+                                    tipo = tipoMovimentacao,
                                     data = targetDate
                                 )
                                 valorInput = ""
@@ -365,11 +426,14 @@ fun HomeScreen(
                             }
                         }
                     ) {
-                        Text("Adicionar")
+                        Text("Confirmar")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
+                    TextButton(onClick = {
+                        valorInput = ""
+                        showDialog = false
+                    }) {
                         Text("Cancelar")
                     }
                 }

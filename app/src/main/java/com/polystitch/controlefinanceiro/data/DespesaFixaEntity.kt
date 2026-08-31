@@ -10,5 +10,6 @@ data class DespesaFixaEntity(
     val descricao: String,
     val valor: Double,
     val diaVencimento: Int,
-    val mesesAtivos: String // Armazenado como texto (ex: "1,2,3,4")
+    val mesesAtivos: String, // Armazenado como texto (ex: "1,2,3,4")
+    val categoriaId: Long? = null // Adicionado para suportar o vínculo com a categoria
 )

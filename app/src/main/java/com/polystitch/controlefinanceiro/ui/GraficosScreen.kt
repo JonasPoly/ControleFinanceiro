@@ -26,10 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
 import com.polystitch.controlefinanceiro.data.entity.TransacaoEntity
 import com.polystitch.controlefinanceiro.viewmodel.FinanceViewModel
-import java.time.Instant
-import java.time.ZoneId
-import java.time.YearMonth
-import java.time.format.TextStyle
+import java.util.Calendar
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,25 +37,31 @@ fun GraficosScreen(
 ) {
     val transacoes: List<TransacaoEntity> by viewModel.transacoes.collectAsState(initial = emptyList())
     val despesasFixas: List<DespesaFixaEntity> by viewModel.despesasFixas.collectAsState(initial = emptyList())
-    var selectedYearMonth by remember { mutableStateOf(YearMonth.now()) }
+    val categorias by viewModel.categorias.collectAsState(initial = emptyList())
 
-    val despesasFiltradas = remember(transacoes, selectedYearMonth) {
+    // Usando Calendar para gerenciar mês e ano compatível com qualquer minSdk
+    var selectedCalendar by remember {
+        mutableStateOf(Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+        })
+    }
+
+    val selectedYear = selectedCalendar.get(Calendar.YEAR)
+    val selectedMonth = selectedCalendar.get(Calendar.MONTH) // 0 a 11
+
+    val despesasFiltradas = remember(transacoes, selectedYear, selectedMonth) {
         transacoes.filter { tx ->
             if (tx.tipo != "DESPESA") return@filter false
             try {
-                val txYearMonth = YearMonth.from(
-                    Instant.ofEpochMilli(tx.data)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                )
-                txYearMonth == selectedYearMonth
+                val calTx = Calendar.getInstance().apply { timeInMillis = tx.data }
+                calTx.get(Calendar.YEAR) == selectedYear && calTx.get(Calendar.MONTH) == selectedMonth
             } catch (_: Exception) {
                 false
             }
         }
     }
 
-    val mesSelecionadoInt = selectedYearMonth.monthValue
+    val mesSelecionadoInt = selectedMonth + 1 // 1 a 12
     val despesasFixasDoMes = despesasFixas.filter { despesa ->
         val mesesList = despesa.mesesAtivos
             .split(",")
@@ -74,7 +77,7 @@ fun GraficosScreen(
         val mapa = mutableMapOf<String, Double>()
 
         despesasFiltradas.forEach { tx ->
-            val forma = if (tx.formaPagamento.isNullOrBlank()) "Outros" else tx.formaPagamento
+            val forma = if (tx.formaPagamento.isBlank()) "Outros" else tx.formaPagamento
             mapa[forma] = (mapa[forma] ?: 0.0) + tx.valor
         }
 
@@ -83,8 +86,23 @@ fun GraficosScreen(
             mapa[chaveFixa] = (mapa[chaveFixa] ?: 0.0) + totalDespesasFixas
         }
 
-        mapa.entries
-            .sortedByDescending { it.value }
+        mapa.entries.sortedByDescending { it.value }
+    }
+
+    val gastosPorCategoria = remember(despesasFiltradas, despesasFixasDoMes, categorias) {
+        val mapa = mutableMapOf<String, Double>()
+
+        despesasFiltradas.forEach { tx ->
+            val nomeCategoria = categorias.find { it.id == tx.categoriaId }?.nome ?: "Outros"
+            mapa[nomeCategoria] = (mapa[nomeCategoria] ?: 0.0) + tx.valor
+        }
+
+        if (totalDespesasFixas > 0.0) {
+            val chaveFixa = "Despesas Fixas"
+            mapa[chaveFixa] = (mapa[chaveFixa] ?: 0.0) + totalDespesasFixas
+        }
+
+        mapa.entries.sortedByDescending { it.value }
     }
 
     val screenBackgroundBrush = Brush.verticalGradient(
@@ -124,7 +142,7 @@ fun GraficosScreen(
                                 color = Color(0xFF1E293B)
                             )
                             Text(
-                                text = "Distribuição de despesas por categoria",
+                                text = "Distribuição de despesas",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF475569)
                             )
@@ -178,7 +196,11 @@ fun GraficosScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(onClick = { selectedYearMonth = selectedYearMonth.minusMonths(1) }) {
+                            IconButton(onClick = {
+                                selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                    add(Calendar.MONTH, -1)
+                                }
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.ChevronLeft,
                                     contentDescription = "Mês Anterior",
@@ -186,16 +208,20 @@ fun GraficosScreen(
                                 )
                             }
 
-                            val mesNome = selectedYearMonth.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("pt-BR"))
-                                .replaceFirstChar { it.uppercase() }
+                            val mesNome = selectedCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale("pt", "BR"))
+                                ?.replaceFirstChar { it.uppercase() } ?: ""
                             Text(
-                                text = "$mesNome ${selectedYearMonth.year}",
+                                text = "$mesNome $selectedYear",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
 
-                            IconButton(onClick = { selectedYearMonth = selectedYearMonth.plusMonths(1) }) {
+                            IconButton(onClick = {
+                                selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                    add(Calendar.MONTH, 1)
+                                }
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight,
                                     contentDescription = "Próximo Mês",
@@ -264,7 +290,7 @@ fun GraficosScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                if (gastosPorForma.isEmpty()) {
+                if (gastosPorForma.isEmpty() && gastosPorCategoria.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -279,70 +305,143 @@ fun GraficosScreen(
                         )
                     }
                 } else {
-                    Text(
-                        text = "Gastos por Forma de Pagamento",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1E293B)
-                    )
-
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
-                        items(gastosPorForma) { (forma, valor) ->
-                            val porcentagem = if (totalDespesasMes > 0) (valor / totalDespesasMes).toFloat() else 0f
+                        if (gastosPorCategoria.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Gastos por Categoria",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1E293B)
+                                )
+                            }
 
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .shadow(
-                                        elevation = 8.dp,
-                                        shape = RoundedCornerShape(16.dp),
-                                        ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
-                                        spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
-                                    ),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                            ) {
-                                Box(
+                            items(gastosPorCategoria) { (categoria, valor) ->
+                                val porcentagem = if (totalDespesasMes > 0) (valor / totalDespesasMes).toFloat() else 0f
+
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(cardBackgroundBrush)
-                                        .padding(16.dp)
+                                        .shadow(
+                                            elevation = 8.dp,
+                                            shape = RoundedCornerShape(16.dp),
+                                            ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
+                                            spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
+                                        ),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                                 ) {
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(cardBackgroundBrush)
+                                            .padding(16.dp)
                                     ) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(10.dp)
                                         ) {
-                                            Text(
-                                                text = forma,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 15.sp,
-                                                color = Color(0xFF3B0764)
-                                            )
-                                            Text(
-                                                text = "R$ %.2f  (%.1f%%)".format(valor, porcentagem * 100),
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp,
-                                                color = Color(0xFFEF4444)
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = categoria,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 15.sp,
+                                                    color = Color(0xFF3B0764)
+                                                )
+                                                Text(
+                                                    text = "R$ %.2f  (%.1f%%)".format(valor, porcentagem * 100),
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp,
+                                                    color = Color(0xFFEF4444)
+                                                )
+                                            }
+
+                                            LinearProgressIndicator(
+                                                progress = { porcentagem },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(8.dp)
+                                                    .clip(RoundedCornerShape(4.dp)),
+                                                color = Color(0xFF7C3AED),
+                                                trackColor = Color(0xFFE9D5FF)
                                             )
                                         }
+                                    }
+                                }
+                            }
+                        }
 
-                                        LinearProgressIndicator(
-                                            progress = { porcentagem },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(8.dp)
-                                                .clip(RoundedCornerShape(4.dp)),
-                                            color = Color(0xFF7C3AED),
-                                            trackColor = Color(0xFFE9D5FF)
-                                        )
+                        if (gastosPorForma.isNotEmpty()) {
+                            item {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Gastos por Forma de Pagamento",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1E293B)
+                                )
+                            }
+
+                            items(gastosPorForma) { (forma, valor) ->
+                                val porcentagem = if (totalDespesasMes > 0) (valor / totalDespesasMes).toFloat() else 0f
+
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .shadow(
+                                            elevation = 8.dp,
+                                            shape = RoundedCornerShape(16.dp),
+                                            ambientColor = Color(0xFF7C3AED).copy(alpha = 0.15f),
+                                            spotColor = Color(0xFF6D28D9).copy(alpha = 0.2f)
+                                        ),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(cardBackgroundBrush)
+                                            .padding(16.dp)
+                                    ) {
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = forma,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 15.sp,
+                                                    color = Color(0xFF3B0764)
+                                                )
+                                                Text(
+                                                    text = "R$ %.2f  (%.1f%%)".format(valor, porcentagem * 100),
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp,
+                                                    color = Color(0xFFEF4444)
+                                                )
+                                            }
+
+                                            LinearProgressIndicator(
+                                                progress = { porcentagem },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(8.dp)
+                                                    .clip(RoundedCornerShape(4.dp)),
+                                                color = Color(0xFF7C3AED),
+                                                trackColor = Color(0xFFE9D5FF)
+                                            )
+                                        }
                                     }
                                 }
                             }

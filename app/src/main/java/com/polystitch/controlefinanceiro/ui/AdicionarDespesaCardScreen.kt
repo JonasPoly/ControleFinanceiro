@@ -35,6 +35,11 @@ fun AdicionarDespesaCardScreen(
     var selectedCartaoNome by remember { mutableStateOf("") }
     var expandedDropdown by remember { mutableStateOf(false) }
 
+    // Estados para o seletor de Categoria
+    val categorias by viewModel.categorias.collectAsState(initial = emptyList())
+    var selectedCategoriaNome by remember { mutableStateOf("") }
+    var expandedCategoriaDropdown by remember { mutableStateOf(false) }
+
     val screenBackgroundBrush = Brush.verticalGradient(
         colors = listOf(
             Color(0xFFFFFFFF),
@@ -68,7 +73,7 @@ fun AdicionarDespesaCardScreen(
                                 color = Color(0xFF1E293B)
                             )
                             Text(
-                                text = "Polystitch Finance",
+                                text = "Adicione a Despesa",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF475569)
                             )
@@ -188,6 +193,7 @@ fun AdicionarDespesaCardScreen(
                     )
                 )
 
+                // Dropdown para Cartão
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -251,6 +257,70 @@ fun AdicionarDespesaCardScreen(
                     }
                 }
 
+                // Dropdown para Categoria
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(20.dp),
+                            ambientColor = Color(0xFF0F172A).copy(alpha = 0.2f),
+                            spotColor = Color(0xFF1E3A8A).copy(alpha = 0.3f)
+                        )
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(cardBackgroundBrush)
+                ) {
+                    OutlinedButton(
+                        onClick = { expandedCategoriaDropdown = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color.White
+                        ),
+                        border = null
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Text(
+                                text = selectedCategoriaNome.ifBlank { "Selecione a Categoria" },
+                                color = if (selectedCategoriaNome.isBlank()) Color.White.copy(alpha = 0.7f) else Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = expandedCategoriaDropdown,
+                        onDismissRequest = { expandedCategoriaDropdown = false },
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .background(Color(0xFF1E293B))
+                    ) {
+                        if (categorias.isEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text("Nenhuma categoria cadastrada", color = Color.White) },
+                                onClick = { expandedCategoriaDropdown = false }
+                            )
+                        } else {
+                            categorias.forEach { categoria ->
+                                DropdownMenuItem(
+                                    text = { Text(categoria.nome, color = Color.White) },
+                                    onClick = {
+                                        selectedCategoriaNome = categoria.nome
+                                        expandedCategoriaDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Card(
@@ -258,6 +328,7 @@ fun AdicionarDespesaCardScreen(
                         val valorParsed = valor.replace(",", ".").toDoubleOrNull()
                         val qtdParcelas = parcelas.toIntOrNull() ?: 1
                         val cartaoEscolhido = cartoes.find { it.nome == selectedCartaoNome }
+                        val categoriaEscolhida = categorias.find { it.nome == selectedCategoriaNome }
 
                         if (descricao.isNotBlank() && valorParsed != null && valorParsed > 0 && cartaoEscolhido != null) {
                             viewModel.adicionarTransacaoComParcelas(
@@ -268,7 +339,8 @@ fun AdicionarDespesaCardScreen(
                                 formaPagamento = "CREDITO",
                                 cartaoId = cartaoEscolhido.id,
                                 diaFechamentoCartao = cartaoEscolhido.diaFechamento,
-                                quantidadeParcelas = qtdParcelas
+                                quantidadeParcelas = qtdParcelas,
+                                categoriaId = categoriaEscolhida?.id
                             )
                             onNavigateBack()
                         }

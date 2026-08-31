@@ -5,9 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.polystitch.controlefinanceiro.data.dao.CartaoDao
+import com.polystitch.controlefinanceiro.data.dao.CategoriaDao
 import com.polystitch.controlefinanceiro.data.dao.DespesaFixaDao
 import com.polystitch.controlefinanceiro.data.dao.TransacaoDao
 import com.polystitch.controlefinanceiro.data.entity.CartaoEntity
+import com.polystitch.controlefinanceiro.data.entity.CategoriaEntity
 import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
 import com.polystitch.controlefinanceiro.data.entity.TransacaoEntity
 
@@ -15,9 +17,10 @@ import com.polystitch.controlefinanceiro.data.entity.TransacaoEntity
     entities = [
         CartaoEntity::class,
         DespesaFixaEntity::class,
-        TransacaoEntity::class
+        TransacaoEntity::class,
+        CategoriaEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,6 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun cartaoDao(): CartaoDao
     abstract fun despesaFixaDao(): DespesaFixaDao
     abstract fun transacaoDao(): TransacaoDao
+    abstract fun categoriaDao(): CategoriaDao
 
     companion object {
         @Volatile

@@ -9,8 +9,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material3.*
@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.polystitch.controlefinanceiro.data.entity.CategoriaEntity
 import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
 import com.polystitch.controlefinanceiro.viewmodel.FinanceViewModel
 import java.util.Calendar
@@ -56,6 +57,10 @@ fun DespesasFixasScreen(
 
     val despesasFixas by viewModel.despesasFixas.collectAsState()
 
+    val categorias by viewModel.categorias.collectAsState(initial = emptyList())
+    var selectedCategoriaNome by remember { mutableStateOf("") }
+    var expandedCategoriaDropdown by remember { mutableStateOf(false) }
+
     var showDialog by remember { mutableStateOf(false) }
     var descricaoInput by remember { mutableStateOf("") }
     var valorInput by remember { mutableStateOf("") }
@@ -83,7 +88,7 @@ fun DespesasFixasScreen(
                                 color = Color(0xFF1E293B)
                             )
                             Text(
-                                text = "Controle contas recorrentes por mês",
+                                text = "Controle contas recorrentes por mes",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF475569)
                             )
@@ -92,7 +97,7 @@ fun DespesasFixasScreen(
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
                                 tint = Color(0xFF1E293B)
                             )
@@ -145,7 +150,7 @@ fun DespesasFixasScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Compromisso do Mês (${mesesNomes[mesAtual - 1]})",
+                                text = "Compromisso do Mes (${mesesNomes[mesAtual - 1]})",
                                 color = Color.White.copy(alpha = 0.75f),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium
@@ -178,6 +183,7 @@ fun DespesasFixasScreen(
                 Button(
                     onClick = {
                         mesesSelecionados.clear()
+                        selectedCategoriaNome = ""
                         showDialog = true
                     },
                     modifier = Modifier
@@ -229,10 +235,12 @@ fun DespesasFixasScreen(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(despesasFixas, key = { it.id }) { despesa: DespesaFixaEntity ->
+                        items(despesasFixas, key = { despesa -> despesa.id }) { despesa: DespesaFixaEntity ->
                             val mesesList = despesa.mesesAtivos
                                 .split(",")
                                 .mapNotNull { it.trim().toIntOrNull() }
+
+                            val categoriaNome = categorias.find { categoria -> categoria.id == despesa.categoriaId }?.nome
 
                             Card(
                                 modifier = Modifier
@@ -282,9 +290,14 @@ fun DespesasFixasScreen(
                                                     color = Color.White
                                                 )
                                                 val qtdMeses = mesesList.size
-                                                val textoMeses = if (qtdMeses == 1) "1 mês ativo" else "$qtdMeses meses ativos"
+                                                val textoMeses = if (qtdMeses == 1) "1 mes ativo" else "$qtdMeses meses ativos"
+                                                val infoExtra = if (!categoriaNome.isNullOrBlank()) {
+                                                    "Venc.: dia ${despesa.diaVencimento} • $categoriaNome • $textoMeses"
+                                                } else {
+                                                    "Vencimento: dia ${despesa.diaVencimento} • $textoMeses"
+                                                }
                                                 Text(
-                                                    text = "Vencimento: dia ${despesa.diaVencimento} • $textoMeses",
+                                                    text = infoExtra,
                                                     fontSize = 11.sp,
                                                     color = Color.White.copy(alpha = 0.75f)
                                                 )
@@ -331,12 +344,13 @@ fun DespesasFixasScreen(
                 title = { Text("Despesa Fixa / Sazonal") },
                 text = {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
                             value = descricaoInput,
                             onValueChange = { descricaoInput = it },
-                            label = { Text("Descrição (ex: IPVA, IPTU, Aluguel)") },
+                            label = { Text("Descricao (ex: IPVA, IPTU, Aluguel)") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -356,6 +370,56 @@ fun DespesasFixasScreen(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedButton(
+                                onClick = { expandedCategoriaDropdown = true },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(4.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Text(
+                                        text = selectedCategoriaNome.ifBlank { "Selecione a Categoria" },
+                                        color = if (selectedCategoriaNome.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = expandedCategoriaDropdown,
+                                onDismissRequest = { expandedCategoriaDropdown = false },
+                                modifier = Modifier.fillMaxWidth(0.75f)
+                            ) {
+                                if (categorias.isEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text("Nenhuma categoria cadastrada") },
+                                        onClick = { expandedCategoriaDropdown = false }
+                                    )
+                                } else {
+                                    categorias.forEach { categoria: CategoriaEntity ->
+                                        DropdownMenuItem(
+                                            text = { Text(categoria.nome) },
+                                            onClick = {
+                                                selectedCategoriaNome = categoria.nome
+                                                expandedCategoriaDropdown = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
@@ -404,18 +468,21 @@ fun DespesasFixasScreen(
                         onClick = {
                             val valorParsed = valorInput.replace(",", ".").toDoubleOrNull()
                             val diaParsed = diaVencimentoInput.toIntOrNull()
-                            val mesesAtivosList = mesesSelecionados.filter { it.value }.keys.sorted()
+                            val mesesAtivosList = mesesSelecionados.filter { entry -> entry.value }.keys.sorted()
+                            val categoriaEscolhida = categorias.find { categoria -> categoria.nome == selectedCategoriaNome }
 
                             if (descricaoInput.isNotBlank() && valorParsed != null && valorParsed > 0 && diaParsed != null && mesesAtivosList.isNotEmpty()) {
                                 viewModel.adicionarDespesaFixa(
                                     descricao = descricaoInput,
                                     valor = valorParsed,
                                     diaVencimento = diaParsed,
-                                    mesesAtivos = mesesAtivosList
+                                    mesesAtivos = mesesAtivosList,
+                                    categoriaId = categoriaEscolhida?.id
                                 )
                                 descricaoInput = ""
                                 valorInput = ""
                                 diaVencimentoInput = ""
+                                selectedCategoriaNome = ""
                                 mesesSelecionados.clear()
                                 showDialog = false
                             }

@@ -13,6 +13,7 @@ data class TransacaoEntity(
     val data: Long,
     val formaPagamento: String,
     val cartaoId: Long? = null,
+    val categoriaId: Long? = null, // <-- Adicionado para suportar categorias nos gráficos
     val numeroParcela: Int? = null,
     val totalParcelas: Int? = null,
     val transacaoPaiId: Long? = null

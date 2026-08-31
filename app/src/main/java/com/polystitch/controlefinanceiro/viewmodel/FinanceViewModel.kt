@@ -7,6 +7,7 @@ import com.polystitch.controlefinanceiro.data.AppDatabase
 import com.polystitch.controlefinanceiro.data.entity.TransacaoEntity
 import com.polystitch.controlefinanceiro.data.entity.CartaoEntity
 import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
+import com.polystitch.controlefinanceiro.data.entity.CategoriaEntity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -19,6 +20,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     private val transacaoDao = database.transacaoDao()
     private val cartaoDao = database.cartaoDao()
     private val despesaFixaDao = database.despesaFixaDao()
+    private val categoriaDao = database.categoriaDao()
 
     val transacoes: StateFlow<List<TransacaoEntity>> = transacaoDao.obterTodas()
         .stateIn(
@@ -41,7 +43,32 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             initialValue = emptyList()
         )
 
-    fun adicionarDespesaFixa(descricao: String, valor: Double, diaVencimento: Int, mesesAtivos: List<Int>) {
+    val categorias: StateFlow<List<CategoriaEntity>> = categoriaDao.listarCategorias()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    fun salvarCategoria(nome: String, tipo: String) {
+        viewModelScope.launch {
+            categoriaDao.inserirCategoria(CategoriaEntity(nome = nome, tipo = tipo))
+        }
+    }
+
+    fun deletarCategoria(id: Long) {
+        viewModelScope.launch {
+            categoriaDao.deletarCategoria(id)
+        }
+    }
+
+    fun adicionarDespesaFixa(
+        descricao: String,
+        valor: Double,
+        diaVencimento: Int,
+        mesesAtivos: List<Int>,
+        categoriaId: Long? = null
+    ) {
         viewModelScope.launch {
             val mesesString = mesesAtivos.joinToString(",")
             val entity = DespesaFixaEntity(
@@ -49,7 +76,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                 descricao = descricao,
                 valor = valor,
                 diaVencimento = diaVencimento,
-                mesesAtivos = mesesString
+                mesesAtivos = mesesString,
+                categoriaId = categoriaId
             )
             despesaFixaDao.inserir(entity)
         }
@@ -67,7 +95,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         tipo: String,
         data: Long = System.currentTimeMillis(),
         formaPagamento: String = "DINHEIRO",
-        cartaoId: Long? = null
+        cartaoId: Long? = null,
+        categoriaId: Long? = null
     ) {
         viewModelScope.launch {
             val transacao = TransacaoEntity(
@@ -76,7 +105,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                 tipo = tipo,
                 data = data,
                 formaPagamento = formaPagamento,
-                cartaoId = cartaoId
+                cartaoId = cartaoId,
+                categoriaId = categoriaId
             )
             transacaoDao.inserir(transacao)
         }
@@ -90,7 +120,8 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
         formaPagamento: String,
         cartaoId: Long?,
         diaFechamentoCartao: Int?,
-        quantidadeParcelas: Int
+        quantidadeParcelas: Int,
+        categoriaId: Long? = null
     ) {
         viewModelScope.launch {
             val parcelas = if (quantidadeParcelas < 1) 1 else quantidadeParcelas
@@ -115,6 +146,7 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                     data = calendar.timeInMillis,
                     formaPagamento = formaPagamento,
                     cartaoId = cartaoId,
+                    categoriaId = categoriaId,
                     numeroParcela = if (parcelas > 1) i else null,
                     totalParcelas = if (parcelas > 1) parcelas else null,
                     transacaoPaiId = null

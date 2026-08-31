@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.polystitch.controlefinanceiro.ui.AdicionarDespesaCardScreen
 import com.polystitch.controlefinanceiro.ui.AdicionarDespesaVistaScreen
 import com.polystitch.controlefinanceiro.ui.CartoesScreen
+import com.polystitch.controlefinanceiro.ui.CategoriasScreen
 import com.polystitch.controlefinanceiro.ui.ConsultarDespesasScreen
 import com.polystitch.controlefinanceiro.ui.DespesasFixasScreen
 import com.polystitch.controlefinanceiro.ui.GraficosScreen
@@ -42,7 +43,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToAdicionarDespesaVista = { currentScreen = "adicionar_despesa_vista" },
                                 onNavigateToConsultarDespesas = { currentScreen = "consultar_despesas" },
                                 onNavigateToGraficos = { currentScreen = "graficos" },
-                                onNavigateToDespesasFixas = { currentScreen = "despesas_fixas" }
+                                onNavigateToDespesasFixas = { currentScreen = "despesas_fixas" },
+                                onNavigateToCategorias = { currentScreen = "categorias" } // <--- Adicionado aqui
                             )
                         }
                         "cartoes" -> {
@@ -77,6 +79,12 @@ class MainActivity : ComponentActivity() {
                         }
                         "despesas_fixas" -> {
                             DespesasFixasScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { currentScreen = "home" }
+                            )
+                        }
+                        "categorias" -> { // <--- Bloco adicionado para renderizar a tela
+                            CategoriasScreen(
                                 viewModel = viewModel,
                                 onNavigateBack = { currentScreen = "home" }
                             )
