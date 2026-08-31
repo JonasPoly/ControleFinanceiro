@@ -59,6 +59,9 @@ dependencies {
     // Dependência de ícones do Material Compose
     implementation("androidx.compose.material:material-icons-extended")
 
+    // SDK oficial do Google Mobile Ads corrigido para o identificador correto
+    implementation("com.google.android.gms:play-services-ads:23.0.0")
+
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)

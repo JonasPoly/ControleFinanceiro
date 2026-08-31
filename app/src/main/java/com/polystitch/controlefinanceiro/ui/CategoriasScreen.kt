@@ -3,10 +3,10 @@ package com.polystitch.controlefinanceiro.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -89,13 +89,18 @@ fun CategoriasScreen(
             },
             containerColor = Color.Transparent
         ) { paddingValues ->
+            val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 18.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 18.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                Spacer(modifier = Modifier.height(2.dp))
+
                 // Botão de Adicionar no topo com o mesmo estilo/degradê dos menus da Home
                 Card(
                     modifier = Modifier
@@ -157,12 +162,14 @@ fun CategoriasScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(4.dp))
+
                 // Lista de Categorias
                 if (categorias.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
+                            .padding(top = 20.dp, bottom = 20.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -172,13 +179,11 @@ fun CategoriasScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(categorias) { categoria ->
+                        categorias.forEach { categoria ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -237,6 +242,13 @@ fun CategoriasScreen(
                         }
                     }
                 }
+
+                // Banner do AdMob integrado com rolagem na parte inferior
+                com.polystitch.controlefinanceiro.ui.AdMobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 8.dp)
+                )
             }
 
             if (mostrarDialogo) {

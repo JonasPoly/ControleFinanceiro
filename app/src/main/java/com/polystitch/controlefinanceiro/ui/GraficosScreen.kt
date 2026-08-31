@@ -320,7 +320,9 @@ fun GraficosScreen(
                                 )
                             }
 
-                            items(gastosPorCategoria) { (categoria, valor) ->
+                            items(gastosPorCategoria, key = { it.key }) { entry ->
+                                val categoria = entry.key
+                                val valor = entry.value
                                 val porcentagem = if (totalDespesasMes > 0) (valor / totalDespesasMes).toFloat() else 0f
 
                                 Card(
@@ -353,7 +355,8 @@ fun GraficosScreen(
                                                     text = categoria,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 15.sp,
-                                                    color = Color(0xFF3B0764)
+                                                    color = Color(0xFF3B0764),
+                                                    modifier = Modifier.weight(1f)
                                                 )
                                                 Text(
                                                     text = "R$ %.2f  (%.1f%%)".format(valor, porcentagem * 100),
@@ -389,7 +392,9 @@ fun GraficosScreen(
                                 )
                             }
 
-                            items(gastosPorForma) { (forma, valor) ->
+                            items(gastosPorForma, key = { it.key }) { entry ->
+                                val forma = entry.key
+                                val valor = entry.value
                                 val porcentagem = if (totalDespesasMes > 0) (valor / totalDespesasMes).toFloat() else 0f
 
                                 Card(
@@ -422,7 +427,8 @@ fun GraficosScreen(
                                                     text = forma,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 15.sp,
-                                                    color = Color(0xFF3B0764)
+                                                    color = Color(0xFF3B0764),
+                                                    modifier = Modifier.weight(1f)
                                                 )
                                                 Text(
                                                     text = "R$ %.2f  (%.1f%%)".format(valor, porcentagem * 100),
@@ -445,6 +451,15 @@ fun GraficosScreen(
                                     }
                                 }
                             }
+                        }
+
+                        // Banner do AdMob integrado na rolagem da LazyColumn
+                        item {
+                            com.polystitch.controlefinanceiro.ui.AdMobBanner(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, bottom = 12.dp)
+                            )
                         }
                     }
                 }

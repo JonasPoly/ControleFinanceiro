@@ -5,9 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
@@ -110,13 +112,18 @@ fun DespesasFixasScreen(
             },
             containerColor = Color.Transparent
         ) { paddingValues ->
+            val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 18.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 18.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                Spacer(modifier = Modifier.height(2.dp))
+
                 val totalMesAtual = despesasFixas
                     .filter { despesa ->
                         val mesesList = despesa.mesesAtivos
@@ -124,7 +131,7 @@ fun DespesasFixasScreen(
                             .mapNotNull { it.trim().toIntOrNull() }
                         mesesList.contains(mesAtual)
                     }
-                    .sumOf { it.valor }
+                    .sumOf { despesa -> despesa.valor }
 
                 Box(
                     modifier = Modifier
@@ -220,7 +227,7 @@ fun DespesasFixasScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
+                            .padding(top = 20.dp, bottom = 20.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -231,11 +238,11 @@ fun DespesasFixasScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(despesasFixas, key = { despesa -> despesa.id }) { despesa: DespesaFixaEntity ->
+                        despesasFixas.forEach { despesa ->
                             val mesesList = despesa.mesesAtivos
                                 .split(",")
                                 .mapNotNull { it.trim().toIntOrNull() }
@@ -266,7 +273,8 @@ fun DespesasFixasScreen(
                                     ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            modifier = Modifier.weight(1f)
                                         ) {
                                             Box(
                                                 modifier = Modifier
@@ -335,6 +343,13 @@ fun DespesasFixasScreen(
                         }
                     }
                 }
+
+                // Banner do AdMob integrado com rolagem na parte inferior
+                com.polystitch.controlefinanceiro.ui.AdMobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 8.dp)
+                )
             }
         }
 

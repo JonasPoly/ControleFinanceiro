@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -136,14 +138,17 @@ fun ConsultarDespesasScreen(
             },
             containerColor = Color.Transparent
         ) { paddingValues ->
+            val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Card(
                     modifier = Modifier
@@ -196,11 +201,13 @@ fun ConsultarDespesasScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(2.dp))
+
                 if (semNenhumaDespesa) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 60.dp),
+                            .fillMaxWidth()
+                            .padding(top = 20.dp, bottom = 20.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -211,23 +218,20 @@ fun ConsultarDespesasScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(bottom = 24.dp)
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         if (despesasFixasDoMes.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = "Despesas Fixas / Recorrentes",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1E293B),
-                                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
-                                )
-                            }
+                            Text(
+                                text = "Despesas Fixas / Recorrentes",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1E293B),
+                                modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                            )
 
-                            items(despesasFixasDoMes, key = { "fixa_${it.id}" }) { fixa ->
+                            despesasFixasDoMes.forEach { fixa ->
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -307,17 +311,15 @@ fun ConsultarDespesasScreen(
                         }
 
                         if (despesasTransacoesFiltradas.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = "Despesas Avulsas e de Cartão",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1E293B),
-                                    modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
-                                )
-                            }
+                            Text(
+                                text = "Despesas Avulsas e de Cartão",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1E293B),
+                                modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                            )
 
-                            items(despesasTransacoesFiltradas, key = { it.id }) { despesa ->
+                            despesasTransacoesFiltradas.forEach { despesa ->
                                 val dataFormatada = try {
                                     Instant.ofEpochMilli(despesa.data)
                                         .atZone(ZoneId.systemDefault())
@@ -431,6 +433,13 @@ fun ConsultarDespesasScreen(
                         }
                     }
                 }
+
+                // Banner do AdMob integrado com rolagem na parte inferior
+                com.polystitch.controlefinanceiro.ui.AdMobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 8.dp)
+                )
             }
         }
     }

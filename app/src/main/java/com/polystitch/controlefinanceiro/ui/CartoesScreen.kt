@@ -4,9 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -118,14 +120,17 @@ fun CartoesScreen(
             },
             containerColor = Color.Transparent
         ) { paddingValues ->
+            val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 if (cartaoSelecionadoDetalhes != null) {
                     val cartaoAtual = cartaoSelecionadoDetalhes!!
@@ -213,7 +218,7 @@ fun CartoesScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 40.dp),
+                                .padding(top = 20.dp, bottom = 20.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -224,11 +229,11 @@ fun CartoesScreen(
                             )
                         }
                     } else {
-                        LazyColumn(
+                        Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(gastosDoMes, key = { it.id }) { gasto ->
+                            gastosDoMes.forEach { gasto ->
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(16.dp),
@@ -325,13 +330,13 @@ fun CartoesScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     if (cartoes.isEmpty()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 20.dp),
+                                .padding(top = 20.dp, bottom = 20.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -342,11 +347,11 @@ fun CartoesScreen(
                             )
                         }
                     } else {
-                        LazyColumn(
+                        Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(cartoes, key = { it.id }) { cartao ->
+                            cartoes.forEach { cartao ->
                                 Card(
                                     onClick = { cartaoSelecionadoDetalhes = cartao },
                                     modifier = Modifier
@@ -454,6 +459,13 @@ fun CartoesScreen(
                         }
                     }
                 }
+
+                // Banner do AdMob integrado com rolagem na parte inferior
+                com.polystitch.controlefinanceiro.ui.AdMobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 8.dp)
+                )
             }
         }
 
