@@ -1,5 +1,9 @@
 package com.polystitch.controlefinanceiro.ui
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -36,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.polystitch.controlefinanceiro.ui.theme.AppTheme
+import com.polystitch.controlefinanceiro.utils.NotificationHelper
 import com.polystitch.controlefinanceiro.utils.PdfGenerator
 import com.polystitch.controlefinanceiro.viewmodel.FinanceViewModel
 import java.util.Calendar
@@ -66,6 +71,30 @@ fun HomeScreen(
     // Estados para controlar os diálogos de alerta de itens faltantes
     var mostrarAlertaFaltaCartao by remember { mutableStateOf(false) }
     var mostrarAlertaFaltaCategoria by remember { mutableStateOf(false) }
+
+    // Lançador e estado para permissão de notificação no Android 13+
+    var temPermissaoNotificacao by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        temPermissaoNotificacao = isGranted
+    }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !temPermissaoNotificacao) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        NotificationHelper.criarCanalNotificacao(context)
+    }
 
     var selectedCalendar by remember {
         mutableStateOf(Calendar.getInstance().apply {
@@ -648,27 +677,30 @@ fun HomeMenuButton(
                         modifier = Modifier
                             .size(30.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.15f)),
+                            .background(Color.White.copy(alpha = 0.2f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(15.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     }
-                    Column {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(1.dp)
+                    ) {
                         Text(
                             text = title,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Text(
                             text = subtitle,
+                            style = MaterialTheme.typography.bodySmall,
                             fontSize = 10.sp,
-                            color = Color.White.copy(alpha = 0.75f)
+                            color = Color.White.copy(alpha = 0.8f)
                         )
                     }
                 }
@@ -676,7 +708,7 @@ fun HomeMenuButton(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = null,
                     tint = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
@@ -690,23 +722,25 @@ fun FinanceIndicatorItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     color: Color
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
         Box(
             modifier = Modifier
-                .size(26.dp)
+                .size(24.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.12f)),
+                .background(color.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(13.dp)
+                modifier = Modifier.size(14.dp)
             )
         }
-        Spacer(modifier = Modifier.width(6.dp))
-        Column {
+        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Text(
                 text = title,
                 color = Color.White.copy(alpha = 0.7f),
@@ -716,7 +750,7 @@ fun FinanceIndicatorItem(
             Text(
                 text = value,
                 color = Color.White,
-                fontSize = 11.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
         }

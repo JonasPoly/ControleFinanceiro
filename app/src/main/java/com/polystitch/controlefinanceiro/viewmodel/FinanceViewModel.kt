@@ -10,6 +10,7 @@ import com.polystitch.controlefinanceiro.data.entity.CartaoEntity
 import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
 import com.polystitch.controlefinanceiro.data.entity.CategoriaEntity
 import com.polystitch.controlefinanceiro.ui.theme.AppTheme
+import com.polystitch.controlefinanceiro.utils.NotificationHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -73,6 +74,21 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             initialValue = emptyList()
         )
 
+    private fun calcularDelayAteDia(diaAlvo: Int): Long {
+        val agora = Calendar.getInstance()
+        val alvo = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, diaAlvo)
+            set(Calendar.HOUR_OF_DAY, 9)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        if (alvo.before(agora)) {
+            alvo.add(Calendar.MONTH, 1)
+        }
+        return alvo.timeInMillis - agora.timeInMillis
+    }
+
     fun salvarCategoria(nome: String, tipo: String) {
         viewModelScope.launch {
             categoriaDao.inserirCategoria(CategoriaEntity(nome = nome, tipo = tipo))
@@ -103,6 +119,18 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                 categoriaId = categoriaId
             )
             despesaFixaDao.inserir(entity)
+
+            val delay = calcularDelayAteDia(diaVencimento)
+            val idNotificacao = System.currentTimeMillis().toInt()
+
+            NotificationHelper.agendarNotificacao(
+                context = getApplication(),
+                tag = "despesa_fixa_$idNotificacao",
+                titulo = "Despesa Fixa Vencendo",
+                mensagem = "A conta '$descricao' no valor de R$ %.2f vence hoje.".format(valor),
+                delayEmMillis = delay,
+                idNotificacao = idNotificacao
+            )
         }
     }
 
@@ -190,6 +218,28 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
                 diaPagamento = diaPagamento
             )
             cartaoDao.inserirCartao(cartao)
+
+            val delayFechamento = calcularDelayAteDia(diaFechamento)
+            val delayPagamento = calcularDelayAteDia(diaPagamento)
+            val baseId = System.currentTimeMillis()
+
+            NotificationHelper.agendarNotificacao(
+                context = getApplication(),
+                tag = "cartao_fechamento_$baseId",
+                titulo = "Fechamento de Fatura",
+                mensagem = "A fatura do cartão '$nome' fecha hoje.",
+                delayEmMillis = delayFechamento,
+                idNotificacao = (baseId % Int.MAX_VALUE).toInt()
+            )
+
+            NotificationHelper.agendarNotificacao(
+                context = getApplication(),
+                tag = "cartao_pagamento_$baseId",
+                titulo = "Vencimento de Fatura",
+                mensagem = "O pagamento da fatura do cartão '$nome' vence hoje.",
+                delayEmMillis = delayPagamento,
+                idNotificacao = ((baseId + 1) % Int.MAX_VALUE).toInt()
+            )
         }
     }
 

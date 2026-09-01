@@ -46,7 +46,9 @@ kotlin {
 }
 
 dependencies {
+    // Declarado apenas uma vez para evitar duplicidade
     implementation(platform(libs.androidx.compose.bom))
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
@@ -59,8 +61,11 @@ dependencies {
     // Dependência de ícones do Material Compose
     implementation("androidx.compose.material:material-icons-extended")
 
-    // SDK oficial do Google Mobile Ads corrigido para o identificador correto
+    // SDK oficial do Google Mobile Ads
     implementation("com.google.android.gms:play-services-ads:23.0.0")
+
+    // WorkManager para notificações agendadas
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

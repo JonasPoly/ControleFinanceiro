@@ -1,14 +1,19 @@
 package com.polystitch.controlefinanceiro
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.ads.MobileAds
 import com.polystitch.controlefinanceiro.ui.AdicionarDespesaCardScreen
@@ -26,12 +31,17 @@ import com.polystitch.controlefinanceiro.viewmodel.FinanceViewModel
 class MainActivity : ComponentActivity() {
     lateinit var interstitialAdManager: InterstitialAdManager
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // O usuário respondeu à permissão; mantemos o fluxo normal do app
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         MobileAds.initialize(this) {}
 
-        // Inicializa e carrega o anúncio de tela cheia
         interstitialAdManager = InterstitialAdManager(this)
         interstitialAdManager.loadAd()
 
@@ -39,6 +49,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: FinanceViewModel = viewModel()
             val currentTheme by viewModel.currentTheme.collectAsState()
+
+            // Solicita a permissão após a UI principal já estar desenhada na tela
+            LaunchedEffect(Unit) {
+                verificarESolicitarPermissaoNotificacao()
+            }
 
             ControleFinanceiroTheme(appTheme = currentTheme) {
                 Surface(
@@ -84,6 +99,18 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun verificarESolicitarPermissaoNotificacao() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
