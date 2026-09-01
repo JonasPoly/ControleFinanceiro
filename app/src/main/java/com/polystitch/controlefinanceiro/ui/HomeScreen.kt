@@ -59,6 +59,14 @@ fun HomeScreen(
     val transacoes by viewModel.transacoes.collectAsState(initial = emptyList())
     val currentTheme by viewModel.currentTheme.collectAsState()
 
+    // Coleta de cartões e categorias do ViewModel para validação
+    val cartoes by viewModel.cartoes.collectAsState(initial = emptyList())
+    val categorias by viewModel.categorias.collectAsState(initial = emptyList())
+
+    // Estados para controlar os diálogos de alerta de itens faltantes
+    var mostrarAlertaFaltaCartao by remember { mutableStateOf(false) }
+    var mostrarAlertaFaltaCategoria by remember { mutableStateOf(false) }
+
     var selectedCalendar by remember {
         mutableStateOf(Calendar.getInstance().apply {
             set(Calendar.DAY_OF_MONTH, 1)
@@ -107,7 +115,7 @@ fun HomeScreen(
     )
 
     val dynamicCardBrush = Brush.horizontalGradient(
-        colors = listOf(primaryColor.copy(alpha = 0.85f), secondaryColor)
+        colors = listOf(primaryColor, secondaryColor)
     )
 
     Box(
@@ -323,7 +331,13 @@ fun HomeScreen(
                         title = "Incluir Despesa à Vista",
                         subtitle = "Pix, Débito ou Dinheiro",
                         icon = Icons.Default.Payments,
-                        onClick = onNavigateToAdicionarDespesaVista,
+                        onClick = {
+                            if (categorias.isEmpty()) {
+                                mostrarAlertaFaltaCategoria = true
+                            } else {
+                                onNavigateToAdicionarDespesaVista()
+                            }
+                        },
                         cardBrush = dynamicCardBrush
                     )
 
@@ -331,7 +345,15 @@ fun HomeScreen(
                         title = "Incluir Despesa no Cartão",
                         subtitle = "Insira compras na fatura",
                         icon = Icons.Default.CreditCard,
-                        onClick = onNavigateToAdicionarDespesaCartao,
+                        onClick = {
+                            if (cartoes.isEmpty()) {
+                                mostrarAlertaFaltaCartao = true
+                            } else if (categorias.isEmpty()) {
+                                mostrarAlertaFaltaCategoria = true
+                            } else {
+                                onNavigateToAdicionarDespesaCartao()
+                            }
+                        },
                         cardBrush = dynamicCardBrush
                     )
 
@@ -339,7 +361,13 @@ fun HomeScreen(
                         title = "Despesas Fixas / Recorrentes",
                         subtitle = "Gerencie contas mensais automáticas",
                         icon = Icons.Default.EventRepeat,
-                        onClick = onNavigateToDespesasFixas,
+                        onClick = {
+                            if (categorias.isEmpty()) {
+                                mostrarAlertaFaltaCategoria = true
+                            } else {
+                                onNavigateToDespesasFixas()
+                            }
+                        },
                         cardBrush = dynamicCardBrush
                     )
 
@@ -421,6 +449,54 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+
+        // Alerta de Falta de Cartão
+        if (mostrarAlertaFaltaCartao) {
+            AlertDialog(
+                onDismissRequest = { mostrarAlertaFaltaCartao = false },
+                title = { Text("Nenhum cartão cadastrado") },
+                text = { Text("Nenhum cartão cadastrado cadastre em central de cartões") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            mostrarAlertaFaltaCartao = false
+                            onNavigateToCartoes()
+                        }
+                    ) {
+                        Text("Ir para Central de Cartões")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { mostrarAlertaFaltaCartao = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
+        // Alerta de Falta de Categoria
+        if (mostrarAlertaFaltaCategoria) {
+            AlertDialog(
+                onDismissRequest = { mostrarAlertaFaltaCategoria = false },
+                title = { Text("Nenhuma categoria cadastrada") },
+                text = { Text("Nenhuma categoria cadastrada cadastre em gerenciar categorias") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            mostrarAlertaFaltaCategoria = false
+                            onNavigateToCategorias()
+                        }
+                    ) {
+                        Text("Ir para Categorias")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { mostrarAlertaFaltaCategoria = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
 
         if (showThemeDialog) {
