@@ -11,10 +11,13 @@ import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
 import com.polystitch.controlefinanceiro.data.entity.CategoriaEntity
 import com.polystitch.controlefinanceiro.ui.theme.AppTheme
 import com.polystitch.controlefinanceiro.utils.NotificationHelper
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -53,6 +56,95 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
             initialValue = emptyList()
         )
 
+    // --- ESTADOS DE FILTRO ---
+    private val _termoBusca = MutableStateFlow("")
+    val termoBusca: StateFlow<String> = _termoBusca.asStateFlow()
+
+    private val _dataInicioFiltro = MutableStateFlow(obterInicioDoMesAtual())
+    val dataInicioFiltro: StateFlow<Long> = _dataInicioFiltro.asStateFlow()
+
+    private val _dataFimFiltro = MutableStateFlow(obterFimDoMesAtual())
+    val dataFimFiltro: StateFlow<Long> = _dataFimFiltro.asStateFlow()
+
+    private val _filtroFormaPagamento = MutableStateFlow("")
+    val filtroFormaPagamento: StateFlow<String> = _filtroFormaPagamento.asStateFlow()
+
+    private val _filtroCategoriaId = MutableStateFlow<Long?>(null)
+    val filtroCategoriaId: StateFlow<Long?> = _filtroCategoriaId.asStateFlow()
+
+    // Classe auxiliar para agrupar os parâmetros
+    private data class FilterParams(
+        val termo: String,
+        val inicio: Long,
+        val fim: Long,
+        val forma: String,
+        val categoria: Long?
+    )
+
+    // --- LISTAGEM FILTRADA REATIVA ---
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val transacoesFiltradas: StateFlow<List<TransacaoEntity>> =
+        combine(
+            _termoBusca,
+            _dataInicioFiltro,
+            _dataFimFiltro,
+            _filtroFormaPagamento,
+            _filtroCategoriaId
+        ) { termo, inicio, fim, forma, categoria ->
+            FilterParams(termo, inicio, fim, forma, categoria)
+        }.flatMapLatest { params ->
+            transacaoDao.filtrarTransacoesAvancado(
+                termoBusca = params.termo,
+                dataInicio = params.inicio,
+                dataFim = params.fim,
+                formaPagamento = params.forma,
+                categoriaId = params.categoria
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    // --- FUNÇÕES DE ATUALIZAÇÃO DE FILTROS ---
+    fun atualizarTermoBusca(novoTermo: String) {
+        _termoBusca.value = novoTermo
+    }
+
+    fun atualizarPeriodoFiltro(inicio: Long, fim: Long) {
+        _dataInicioFiltro.value = inicio
+        _dataFimFiltro.value = fim
+    }
+
+    fun atualizarFiltroFormaPagamento(forma: String) {
+        _filtroFormaPagamento.value = forma
+    }
+
+    fun atualizarFiltroCategoria(categoriaId: Long?) {
+        _filtroCategoriaId.value = categoriaId
+    }
+
+    private fun obterInicioDoMesAtual(): Long {
+        return Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    }
+
+    private fun obterFimDoMesAtual(): Long {
+        return Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }.timeInMillis
+    }
+
+    // --- CARTÕES, DESPESAS FIXAS E CATEGORIAS ---
     val cartoes: StateFlow<List<CartaoEntity>> = cartaoDao.listarCartoes()
         .stateIn(
             scope = viewModelScope,

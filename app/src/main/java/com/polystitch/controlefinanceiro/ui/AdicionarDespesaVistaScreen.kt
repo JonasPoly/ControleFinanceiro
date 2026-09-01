@@ -37,7 +37,11 @@ fun AdicionarDespesaVistaScreen(
 ) {
     var descricaoInput by remember { mutableStateOf("") }
     var valorInput by remember { mutableStateOf("") }
-    var formaPagamentoInput by remember { mutableStateOf("Dinheiro") }
+
+    // Forma de pagamento selecionada (removida a opção de cartão)
+    var formaPagamentoInput by remember { mutableStateOf("DINHEIRO") }
+    var expandedFormaDropdown by remember { mutableStateOf(false) }
+    val formasDisponiveis = listOf("DINHEIRO", "PIX", "DEBITO")
 
     // Estados para o seletor de Categoria
     val categorias by viewModel.categorias.collectAsState(initial = emptyList())
@@ -48,7 +52,6 @@ fun AdicionarDespesaVistaScreen(
     var dataMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
 
-    // Cores dinâmicas retiradas do tema atual do Material 3
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
 
@@ -61,7 +64,6 @@ fun AdicionarDespesaVistaScreen(
         )
     )
 
-    // Gradiente alinhado do tom mais escuro para o vibrante (da esquerda para a direita)
     val inputBackgroundBrush = Brush.horizontalGradient(
         colors = listOf(
             primaryColor,
@@ -69,7 +71,6 @@ fun AdicionarDespesaVistaScreen(
         )
     )
 
-    // Função para abrir o DatePickerDialog
     val abrirCalendario = {
         val calendar = Calendar.getInstance().apply { timeInMillis = dataMillis }
         val year = calendar.get(Calendar.YEAR)
@@ -159,6 +160,7 @@ fun AdicionarDespesaVistaScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Descrição
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -192,6 +194,7 @@ fun AdicionarDespesaVistaScreen(
                             )
                         }
 
+                        // Valor
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -226,6 +229,7 @@ fun AdicionarDespesaVistaScreen(
                             )
                         }
 
+                        // Dropdown para Forma de Pagamento (Dinheiro, Pix, Débito)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -238,25 +242,48 @@ fun AdicionarDespesaVistaScreen(
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(inputBackgroundBrush)
                         ) {
-                            OutlinedTextField(
-                                value = formaPagamentoInput,
-                                onValueChange = { formaPagamentoInput = it },
-                                label = { Text("Forma de Pagamento (ex: Pix, Débito, Dinheiro)", color = Color.White.copy(alpha = 0.8f)) },
-                                singleLine = true,
+                            OutlinedButton(
+                                onClick = { expandedFormaDropdown = true },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
                                 shape = RoundedCornerShape(14.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = primaryColor.copy(alpha = 0.6f),
-                                    unfocusedBorderColor = Color.Transparent,
-                                    focusedLabelColor = Color.White,
-                                    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
-                                    cursorColor = Color.White,
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = Color.White
                                 ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                border = null
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Text(
+                                        text = "Forma: $formaPagamentoInput",
+                                        color = Color.White,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = expandedFormaDropdown,
+                                onDismissRequest = { expandedFormaDropdown = false },
+                                modifier = Modifier
+                                    .fillMaxWidth(0.85f)
+                                    .background(primaryColor)
+                            ) {
+                                formasDisponiveis.forEach { forma ->
+                                    DropdownMenuItem(
+                                        text = { Text(forma, color = Color.White) },
+                                        onClick = {
+                                            formaPagamentoInput = forma
+                                            expandedFormaDropdown = false
+                                        }
+                                    )
+                                }
+                            }
                         }
 
                         // Dropdown para Categoria
@@ -326,7 +353,7 @@ fun AdicionarDespesaVistaScreen(
                         val calendar = Calendar.getInstance().apply { timeInMillis = dataMillis }
                         val dataFormatada = dateFormatter.format(calendar.time)
 
-                        // Campo de Data com Box interativo por cima para garantir o clique
+                        // Campo de Data
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -343,7 +370,7 @@ fun AdicionarDespesaVistaScreen(
                                 value = dataFormatada,
                                 onValueChange = {},
                                 readOnly = true,
-                                enabled = false, // Desativa o foco do campo para o clique ir direto pro Box pai
+                                enabled = false,
                                 label = { Text("Data do Pagamento", color = Color.White.copy(alpha = 0.8f)) },
                                 trailingIcon = {
                                     Icon(
@@ -363,7 +390,6 @@ fun AdicionarDespesaVistaScreen(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            // Camada invisível interativa que intercepta o toque e abre o calendário
                             Box(
                                 modifier = Modifier
                                     .matchParentSize()
@@ -419,7 +445,6 @@ fun AdicionarDespesaVistaScreen(
                     }
                 }
 
-                // Banner do AdMob integrado com rolagem na parte inferior
                 com.polystitch.controlefinanceiro.ui.AdMobBanner(
                     modifier = Modifier
                         .fillMaxWidth()

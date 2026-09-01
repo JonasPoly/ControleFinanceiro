@@ -1,6 +1,7 @@
 package com.polystitch.controlefinanceiro.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EventRepeat
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,11 +29,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.polystitch.controlefinanceiro.data.entity.DespesaFixaEntity
 import com.polystitch.controlefinanceiro.viewmodel.FinanceViewModel
-import java.time.Instant
-import java.time.ZoneId
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,30 +39,52 @@ fun ConsultarDespesasScreen(
     viewModel: FinanceViewModel = viewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
-    val transacoes by viewModel.transacoes.collectAsState()
+    val transacoes by viewModel.transacoesFiltradas.collectAsState()
     val despesasFixas by viewModel.despesasFixas.collectAsState()
+    val categorias by viewModel.categorias.collectAsState()
+    val termoBusca by viewModel.termoBusca.collectAsState()
+    val formaPagamentoAtual by viewModel.filtroFormaPagamento.collectAsState()
+    val categoriaIdAtual by viewModel.filtroCategoriaId.collectAsState()
 
-    var selectedYearMonth by remember { mutableStateOf(YearMonth.now()) }
+    var selectedCalendar by remember { mutableStateOf(Calendar.getInstance()) }
 
-    // Filtra transações (à vista e cartão) do mês selecionado
-    val despesasTransacoesFiltradas = remember(transacoes, selectedYearMonth) {
+    // Atualiza o período do filtro no ViewModel sempre que o mês/ano selecionado mudar
+    LaunchedEffect(selectedCalendar) {
+        val inicioCal = (selectedCalendar.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val fimCal = (selectedCalendar.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, selectedCalendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+        viewModel.atualizarPeriodoFiltro(inicioCal.timeInMillis, fimCal.timeInMillis)
+    }
+
+    val selectedYear = selectedCalendar.get(Calendar.YEAR)
+    val selectedMonth = selectedCalendar.get(Calendar.MONTH)
+
+    // Filtra transações do mês selecionado e que sejam despesas
+    val despesasTransacoesFiltradas = remember(transacoes, selectedYear, selectedMonth) {
         transacoes.filter { tx ->
             if (tx.tipo != "DESPESA") return@filter false
             try {
-                val txYearMonth = YearMonth.from(
-                    Instant.ofEpochMilli(tx.data)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                )
-                txYearMonth == selectedYearMonth
+                val txCal = Calendar.getInstance().apply { timeInMillis = tx.data }
+                txCal.get(Calendar.YEAR) == selectedYear && txCal.get(Calendar.MONTH) == selectedMonth
             } catch (_: Exception) {
                 false
             }
         }.sortedByDescending { tx -> tx.data }
     }
 
-    // Filtra despesas fixas ativas no mês selecionado (convertendo string de meses "1,2,3" em lista de Int)
-    val mesSelecionadoInt = selectedYearMonth.monthValue
+    // Filtra despesas fixas ativas no mês selecionado (Calendar.MONTH vai de 0 a 11, logo somamos 1)
+    val mesSelecionadoInt = selectedMonth + 1
     val despesasFixasDoMes = remember(despesasFixas, mesSelecionadoInt) {
         despesasFixas.filter { fixa: DespesaFixaEntity ->
             val mesesList = fixa.mesesAtivos
@@ -73,9 +94,8 @@ fun ConsultarDespesasScreen(
         }
     }
 
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale("pt", "BR")) }
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
 
-    // Cores dinâmicas retiradas do tema atual do Material 3
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
 
@@ -155,6 +175,75 @@ fun ConsultarDespesasScreen(
             ) {
                 Spacer(modifier = Modifier.height(2.dp))
 
+                // Barra de pesquisa textual por descrição
+                OutlinedTextField(
+                    value = termoBusca,
+                    onValueChange = { viewModel.atualizarTermoBusca(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Buscar por descrição...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = primaryColor) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = primaryColor.copy(alpha = 0.4f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                    )
+                )
+
+                // Filtros Rápidos por Forma de Pagamento
+                val formas = listOf("", "DINHEIRO", "CREDITO", "DEBITO", "PIX")
+                val labelsForma = mapOf(
+                    "" to "Todas Formas",
+                    "DINHEIRO" to "Dinheiro",
+                    "CREDITO" to "Crédito",
+                    "DEBITO" to "Débito",
+                    "PIX" to "Pix"
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    formas.forEach { forma ->
+                        FilterChip(
+                            selected = formaPagamentoAtual == forma,
+                            onClick = { viewModel.atualizarFiltroFormaPagamento(forma) },
+                            label = { Text(labelsForma[forma] ?: forma) }
+                        )
+                    }
+                }
+
+                // Filtros Rápidos por Categoria (Apenas categorias de DESPESA ou todas)
+                val categoriasDespesa = categorias.filter { it.tipo == "DESPESA" }
+                if (categoriasDespesa.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = categoriaIdAtual == null,
+                            onClick = { viewModel.atualizarFiltroCategoria(null) },
+                            label = { Text("Todas Categorias") }
+                        )
+
+                        categoriasDespesa.forEach { cat ->
+                            FilterChip(
+                                selected = categoriaIdAtual == cat.id,
+                                onClick = { viewModel.atualizarFiltroCategoria(cat.id) },
+                                label = { Text(cat.nome) }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -178,7 +267,11 @@ fun ConsultarDespesasScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(onClick = { selectedYearMonth = selectedYearMonth.minusMonths(1) }) {
+                            IconButton(onClick = {
+                                selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                    add(Calendar.MONTH, -1)
+                                }
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.ChevronLeft,
                                     contentDescription = "Mês Anterior",
@@ -186,16 +279,20 @@ fun ConsultarDespesasScreen(
                                 )
                             }
 
-                            val mesNome = selectedYearMonth.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("pt-BR"))
-                                .replaceFirstChar { it.uppercase() }
+                            val mesNome = selectedCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale("pt", "BR"))
+                                ?.replaceFirstChar { it.uppercase() } ?: ""
                             Text(
-                                text = "$mesNome ${selectedYearMonth.year}",
+                                text = "$mesNome $selectedYear",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
 
-                            IconButton(onClick = { selectedYearMonth = selectedYearMonth.plusMonths(1) }) {
+                            IconButton(onClick = {
+                                selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                    add(Calendar.MONTH, 1)
+                                }
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight,
                                     contentDescription = "Próximo Mês",
@@ -216,7 +313,7 @@ fun ConsultarDespesasScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Nenhuma despesa para este mês.",
+                            text = "Nenhuma despesa encontrada para este período.",
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
@@ -326,9 +423,7 @@ fun ConsultarDespesasScreen(
 
                             despesasTransacoesFiltradas.forEach { despesa ->
                                 val dataFormatada = try {
-                                    Instant.ofEpochMilli(despesa.data)
-                                        .atZone(ZoneId.systemDefault())
-                                        .format(dateFormatter)
+                                    dateFormatter.format(despesa.data)
                                 } catch (_: Exception) {
                                     ""
                                 }

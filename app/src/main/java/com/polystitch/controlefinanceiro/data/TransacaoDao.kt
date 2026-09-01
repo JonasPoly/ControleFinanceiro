@@ -18,4 +18,20 @@ interface TransacaoDao {
 
     @Query("DELETE FROM transacoes WHERE id = :id")
     suspend fun deletarPorId(id: Long)
+
+    @Query("""
+        SELECT * FROM transacoes 
+        WHERE (:termoBusca = '' OR descricao LIKE '%' || :termoBusca || '%')
+        AND data BETWEEN :dataInicio AND :dataFim
+        AND (:formaPagamento = '' OR formaPagamento = :formaPagamento)
+        AND (:categoriaId IS NULL OR categoriaId = :categoriaId)
+        ORDER BY data DESC
+    """)
+    fun filtrarTransacoesAvancado(
+        termoBusca: String,
+        dataInicio: Long,
+        dataFim: Long,
+        formaPagamento: String,
+        categoriaId: Long?
+    ): Flow<List<TransacaoEntity>>
 }
