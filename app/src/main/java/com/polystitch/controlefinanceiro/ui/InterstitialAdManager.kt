@@ -13,8 +13,8 @@ class InterstitialAdManager(private val context: Context) {
     private var interstitialAd: InterstitialAd? = null
     private var isloading = false
 
-    // ID de teste oficial do Google para Intersticial
-    private val adUnitId = "ca-app-pub-3940256099942544/1033173712"
+    // ID real de produção do AdMob para o Intersticial
+    private val adUnitId = "ca-app-pub-118018612156104~1513638008" // Substitua pelo ID específico do bloco intersticial se gerou uma unidade separada
 
     fun loadAd() {
         if (interstitialAd == null && !isloading) {

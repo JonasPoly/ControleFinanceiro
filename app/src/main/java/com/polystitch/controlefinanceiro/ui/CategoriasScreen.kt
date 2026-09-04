@@ -1,15 +1,14 @@
 package com.polystitch.controlefinanceiro.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -108,25 +107,28 @@ fun CategoriasScreen(
             ) {
                 Spacer(modifier = Modifier.height(2.dp))
 
-                // Botão de Adicionar no topo
+                // Botão de Adicionar no topo mantido com gradiente e estilo original
                 Card(
+                    onClick = {
+                        nomeCategoria = ""
+                        mostrarDialogo = true
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(
-                            elevation = 6.dp,
-                            shape = RoundedCornerShape(16.dp),
-                            ambientColor = primaryColor.copy(alpha = 0.18f),
-                            spotColor = secondaryColor.copy(alpha = 0.25f)
+                            elevation = 10.dp,
+                            shape = RoundedCornerShape(20.dp),
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            spotColor = secondaryColor.copy(alpha = 0.3f)
                         ),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(cardBackgroundBrush)
-                            .clickable { mostrarDialogo = true }
-                            .padding(horizontal = 14.dp, vertical = 14.dp)
+                            .padding(18.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -135,12 +137,12 @@ fun CategoriasScreen(
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(38.dp)
-                                        .clip(CircleShape)
+                                        .size(42.dp)
+                                        .clip(RoundedCornerShape(8.dp))
                                         .background(Color.White.copy(alpha = 0.15f)),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -148,13 +150,13 @@ fun CategoriasScreen(
                                         imageVector = Icons.Default.Add,
                                         contentDescription = null,
                                         tint = Color.White,
-                                        modifier = Modifier.size(19.dp)
+                                        modifier = Modifier.size(22.dp)
                                     )
                                 }
                                 Column {
                                     Text(
                                         text = "Nova Categoria",
-                                        fontSize = 14.sp,
+                                        fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White
                                     )
@@ -194,55 +196,58 @@ fun CategoriasScreen(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .shadow(
-                                        elevation = 6.dp,
-                                        shape = RoundedCornerShape(16.dp),
-                                        ambientColor = primaryColor.copy(alpha = 0.18f),
-                                        spotColor = secondaryColor.copy(alpha = 0.25f)
-                                    ),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                                    .shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp)),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
-                                Box(
+                                Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(cardBackgroundBrush)
-                                        .padding(horizontal = 14.dp, vertical = 12.dp)
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(cardBackgroundBrush),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Column {
-                                            Text(
-                                                text = categoria.nome,
-                                                fontSize = 15.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White
-                                            )
-                                            Spacer(modifier = Modifier.height(2.dp))
-                                            Text(
-                                                text = "Tipo: ${categoria.tipo}",
-                                                fontSize = 12.sp,
-                                                color = Color.White.copy(alpha = 0.75f)
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.Category,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
 
-                                        IconButton(
-                                            onClick = { viewModel.deletarCategoria(categoria.id) },
-                                            modifier = Modifier
-                                                .size(36.dp)
-                                                .clip(CircleShape)
-                                                .background(Color.White.copy(alpha = 0.15f))
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Delete,
-                                                contentDescription = "Deletar Categoria",
-                                                tint = Color(0xFFF87171),
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = categoria.nome,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "Tipo: ${categoria.tipo}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                            fontSize = 11.sp
+                                        )
+                                    }
+
+                                    IconButton(
+                                        onClick = { viewModel.deletarCategoria(categoria.id) },
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Deletar Categoria",
+                                            tint = Color(0xFFDC2626),
+                                            modifier = Modifier.size(18.dp)
+                                        )
                                     }
                                 }
                             }

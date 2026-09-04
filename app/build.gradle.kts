@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
 }
@@ -66,6 +66,9 @@ dependencies {
 
     // WorkManager para notificações agendadas
     implementation("androidx.work:work-runtime-ktx:2.9.1")
+
+    // Gson para o sistema de backup em JSON
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

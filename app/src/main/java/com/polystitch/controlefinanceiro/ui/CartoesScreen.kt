@@ -270,6 +270,7 @@ fun CartoesScreen(
                     }
 
                 } else {
+                    // Botão principal mantido com o layout original em gradiente
                     Card(
                         onClick = {
                             cartaoEmEdicao = null
@@ -358,105 +359,85 @@ fun CartoesScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             cartoes.forEach { cartao ->
+                                // Cards dos cartões utilizando o novo padrão de estilo de botões em lista
                                 Card(
                                     onClick = { cartaoSelecionadoDetalhes = cartao },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .shadow(
-                                            elevation = 8.dp,
-                                            shape = RoundedCornerShape(20.dp),
-                                            ambientColor = primaryColor.copy(alpha = 0.15f),
-                                            spotColor = secondaryColor.copy(alpha = 0.2f)
-                                        ),
-                                    shape = RoundedCornerShape(20.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                                        .shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                                 ) {
-                                    Box(
+                                    Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(
-                                                brush = Brush.horizontalGradient(
-                                                    colors = listOf(
-                                                        primaryColor.copy(alpha = 0.15f),
-                                                        secondaryColor.copy(alpha = 0.1f)
-                                                    )
-                                                )
-                                            )
-                                            .padding(18.dp)
+                                            .padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(cardBackgroundBrush),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.CreditCard,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = cartao.nome,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = "Fechamento: Dia ${cartao.diaFechamento}  •  Pagamento: Dia ${cartao.diaPagamento}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                fontSize = 11.sp
+                                            )
+                                        }
+
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                                modifier = Modifier.weight(1f)
+                                            IconButton(
+                                                onClick = {
+                                                    cartaoEmEdicao = cartao
+                                                    nomeInput = cartao.nome
+                                                    fechamentoInput = cartao.diaFechamento.toString()
+                                                    pagamentoInput = cartao.diaPagamento.toString()
+                                                    showDialog = true
+                                                },
+                                                modifier = Modifier.size(36.dp)
                                             ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(42.dp)
-                                                        .clip(CircleShape)
-                                                        .background(primaryColor.copy(alpha = 0.15f)),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.CreditCard,
-                                                        contentDescription = null,
-                                                        tint = primaryColor,
-                                                        modifier = Modifier.size(22.dp)
-                                                    )
-                                                }
-                                                Column {
-                                                    Text(
-                                                        text = cartao.nome,
-                                                        fontSize = 16.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = primaryColor
-                                                    )
-                                                    Spacer(modifier = Modifier.height(3.dp))
-                                                    Text(
-                                                        text = "Fechamento: Dia ${cartao.diaFechamento}  •  Pagamento: Dia ${cartao.diaPagamento}",
-                                                        fontSize = 12.sp,
-                                                        color = secondaryColor
-                                                    )
-                                                }
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Editar",
+                                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                                    modifier = Modifier.size(18.dp)
+                                                )
                                             }
 
-                                            Row(
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                                verticalAlignment = Alignment.CenterVertically
+                                            IconButton(
+                                                onClick = { viewModel.deletarCartao(cartao) },
+                                                modifier = Modifier.size(36.dp)
                                             ) {
-                                                IconButton(
-                                                    onClick = {
-                                                        cartaoEmEdicao = cartao
-                                                        nomeInput = cartao.nome
-                                                        fechamentoInput = cartao.diaFechamento.toString()
-                                                        pagamentoInput = cartao.diaPagamento.toString()
-                                                        showDialog = true
-                                                    },
-                                                    modifier = Modifier.size(36.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Edit,
-                                                        contentDescription = "Editar",
-                                                        tint = primaryColor,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                }
-
-                                                IconButton(
-                                                    onClick = { viewModel.deletarCartao(cartao) },
-                                                    modifier = Modifier.size(36.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Delete,
-                                                        contentDescription = "Deletar",
-                                                        tint = Color(0xFFDC2626),
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                }
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "Deletar",
+                                                    tint = Color(0xFFDC2626),
+                                                    modifier = Modifier.size(18.dp)
+                                                )
                                             }
                                         }
                                     }

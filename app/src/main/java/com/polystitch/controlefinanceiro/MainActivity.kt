@@ -42,6 +42,9 @@ class MainActivity : ComponentActivity() {
 
         MobileAds.initialize(this) {}
 
+        // Configuração de dispositivos de teste removida para permitir que o AdMob
+        // sirva anúncios reais em modo de produção na Google Play Store.
+
         interstitialAdManager = InterstitialAdManager(this)
         interstitialAdManager.loadAd()
 
